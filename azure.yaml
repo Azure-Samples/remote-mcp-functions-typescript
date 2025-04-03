@@ -1,8 +1,8 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
 
-name: functions-quickstart-typescript-azd
+name: remote-mcp-functions-typescript
 metadata:
-  template: functions-quickstart-typescript-mcp-azd@1.0.0-beta
+  template: remote-mcp-functions-typescript@1.0.0-beta
 services:
   processor:
     project: .
