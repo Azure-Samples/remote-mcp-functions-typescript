@@ -1,7 +1,7 @@
-import { app, InvocationContext, output } from "@azure/functions";
+import { app, InvocationContext } from "@azure/functions";
 
 // Hello function - responds with hello message
-export async function mcpToolHello(context: InvocationContext): Promise<string> {
+export async function mcpToolHello(_toolArguments: unknown, context: InvocationContext): Promise<string> {
     return "Hello I am MCP Tool!";
 }
 

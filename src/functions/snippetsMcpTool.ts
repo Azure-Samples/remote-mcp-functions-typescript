@@ -23,7 +23,7 @@ const blobOutputBinding = output.storageBlob({
 });
 
 // GetSnippet function - retrieves a snippet by name
-export async function getSnippet(_message: unknown, context: InvocationContext): Promise<string> {
+export async function getSnippet(_toolArguments: unknown, context: InvocationContext): Promise<string> {
     console.info('Getting snippet');
     
     // Get snippet name from the tool arguments
@@ -48,7 +48,7 @@ export async function getSnippet(_message: unknown, context: InvocationContext):
 }
 
 // SaveSnippet function - saves a snippet with a name
-export async function saveSnippet(_message: unknown, context: InvocationContext): Promise<string> {
+export async function saveSnippet(_toolArguments: unknown, context: InvocationContext): Promise<string> {
     console.info('Saving snippet');
     
     // Get snippet name and content from the tool arguments
@@ -76,7 +76,7 @@ export async function saveSnippet(_message: unknown, context: InvocationContext)
 }
 
 // Register the GetSnippet tool
-app.mcpTool('getsnippet', {
+app.mcpTool('getSnippet', {
     toolName: GET_SNIPPET_TOOL_NAME,
     description: GET_SNIPPET_TOOL_DESCRIPTION,
     toolProperties: [
@@ -91,7 +91,7 @@ app.mcpTool('getsnippet', {
 });
 
 // Register the SaveSnippet tool
-app.mcpTool('savesnippet', {
+app.mcpTool('saveSnippet', {
     toolName: SAVE_SNIPPET_TOOL_NAME,
     description: SAVE_SNIPPET_TOOL_DESCRIPTION,
     toolProperties: [
