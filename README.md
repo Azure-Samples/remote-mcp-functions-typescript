@@ -104,8 +104,7 @@ An Azure Storage Emulator is needed for this particular sample because we will s
     ```
 1. When prompted to run the tool, consent by clicking **Continue**
 
-1. When you're done, press Ctrl+C in the terminal window to stop the `func.exe` host process.
-1. When you're done, **List MCP Servers** from command palette and stop the local server.
+1. When you're done, press Ctrl+C in the terminal window to stop the `func.exe` host processm and **List MCP Servers** from command palette and stop the local server.
 
 ### MCP Inspector
 
@@ -114,6 +113,12 @@ An Azure Storage Emulator is needed for this particular sample because we will s
     ```shell
     npx @modelcontextprotocol/inspector node build/index.js
     ```
+    
+1. If you stopped your Functions app previously, start the Functions host locally:
+
+   ```shell
+   func start
+   ```
 
 1. CTRL click to load the MCP Inspector web app from the URL displayed by the app (e.g. http://0.0.0.0:5173/#resources)
 1. Set the transport type to `SSE` 
@@ -122,6 +127,8 @@ An Azure Storage Emulator is needed for this particular sample because we will s
     http://0.0.0.0:7071/runtime/webhooks/mcp/sse
     ```
 1. **List Tools**.  Click on a tool and **Run Tool**.  
+
+1. When you're done, press Ctrl+C in the terminal window to stop the `func.exe` host process, and press Ctrl+C in the terminal window to stop the `@modelcontextprotocol/inspector` host process.
 
 ## Deploy to Azure for Remote MCP
 
