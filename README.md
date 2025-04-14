@@ -104,7 +104,7 @@ An Azure Storage Emulator is needed for this particular sample because we will s
     ```
 1. When prompted to run the tool, consent by clicking **Continue**
 
-1. When you're done, press Ctrl+C in the terminal window to stop the `func.exe` host processm and **List MCP Servers** from command palette and stop the local server.
+1. When you're done, press Ctrl+C in the terminal window to stop the `func.exe` host process, and **List MCP Servers** from command palette and stop the local server.
 
 ### MCP Inspector
 
