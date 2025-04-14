@@ -84,6 +84,10 @@ An Azure Storage Emulator is needed for this particular sample because we will s
     http://0.0.0.0:7071/runtime/webhooks/mcp/sse
     ```
 
+1. Select **HTTP (Server-Sent-Events)** for the type of MCP server to add.
+1. Enter the URL to your running Function app's SSE endpoint
+1. Enter the server ID. (This can be any name you want)
+1. Choose if you want to run this in your User settings (available to all apps for you) or to your Workspace settings (available to this app, only)
 1. **List MCP Servers** from command palette and start the server. The previous step may have already started your local server. If so, you can skip this step.
 1. In Copilot chat agent mode enter a prompt to trigger the tool, e.g., select some code and enter this prompt
 
