@@ -83,7 +83,8 @@ An Azure Storage Emulator is needed for this particular sample because we will s
     ```shell
     http://0.0.0.0:7071/runtime/webhooks/mcp/sse
     ```
-1. **List MCP Servers** from command palette and start the server
+
+1. **List MCP Servers** from command palette and start the server. The previous step may have already started your local server. If so, you can skip this step.
 1. In Copilot chat agent mode enter a prompt to trigger the tool, e.g., select some code and enter this prompt
 
     ```plaintext
@@ -100,6 +101,7 @@ An Azure Storage Emulator is needed for this particular sample because we will s
 1. When prompted to run the tool, consent by clicking **Continue**
 
 1. When you're done, press Ctrl+C in the terminal window to stop the `func.exe` host process.
+1. When you're done, **List MCP Servers** from command palette and stop the local server.
 
 ### MCP Inspector
 
