@@ -157,7 +157,7 @@ https://<funcappname>.azurewebsites.net/runtime/webhooks/mcp/sse?code=<your-mcp-
 ```
 
 ### Connect to remote MCP server in VS Code - GitHub Copilot
-For GitHub Copilot within VS Code, you should instead set the key as the `x-functions-key` header in `mcp.json`, and you would just use `https://<funcappname>.azurewebsites.net/runtime/webhooks/mcp/sse` for the URL. The following example uses an input and will prompt you to provide the key when you start the server from VS Code.  Note [mcp.json]() has already been included in this repo and will be picked up by VS Code.  Click Start on the server to be prompted for values including `functionapp-name` (in your /.azure/*/.env file) and `functions-mcp-extension-system-key` which can be obtained from CLI command above or API Keys in the portal for the Function App.  
+For GitHub Copilot within VS Code, you should set the key as the `x-functions-key` header in `mcp.json`, and you would use `https://<funcappname>.azurewebsites.net/runtime/webhooks/mcp/sse` for the URL. The following example is from the `mcp.json` file included in this repository and uses an input to prompt you to provide the key when you start the server from VS Code.  Your `mcp.json` file looks like this:
 
 ```json
 {
@@ -189,6 +189,26 @@ For GitHub Copilot within VS Code, you should instead set the key as the `x-func
     }
 }
 ```
+
+1. Click Start on the server `remote-mcp-function`, inside the `mcp.json` file:
+
+1. Enter the name of the Azure Function that you created in the Azure Portal, when prompted by VS Code.
+
+1. Enter the `Azure Functions MCP Extension System Key` into the prompt. You can copy this from the Azure portal for your Azure Function by going to the Functions menu item, then App Keys, and copying the `mcp_extension` key from the System Keys.
+
+1. In Copilot chat agent mode enter a prompt to trigger the tool, e.g., select some code and enter this prompt
+
+    ```plaintext
+    Say Hello
+    ```
+
+    ```plaintext
+    Save this snippet as snippet1 
+    ```
+
+    ```plaintext
+    Retrieve snippet1 and apply to newFile.ts
+    ```
 
 ## Redeploy your code
 
