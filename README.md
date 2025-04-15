@@ -132,16 +132,16 @@ An Azure Storage Emulator is needed for this particular sample because we will s
 
 ## Deploy to Azure for Remote MCP
 
+Optionally, you can opt-in to a VNet being used in the sample. (If you choose this, do this before `azd up`)
+
+```bash
+azd env set VNET_ENABLED true
+```
+
 Run this [azd](https://aka.ms/azd) command to provision the function app, with any required Azure resources, and deploy your code:
 
 ```shell
 azd up
-```
-
-You can opt-in to a VNet being used in the sample. To do so, do this before `azd up`
-
-```bash
-azd env set VNET_ENABLED true
 ```
 
 Additionally, [API Management]() can be used for improved security and policies over your MCP Server, and [App Service built-in authentication](https://learn.microsoft.com/en-us/azure/app-service/overview-authentication-authorization) can be used to set up your favorite OAuth provider including Entra.  
