@@ -67,6 +67,7 @@ module api 'br/public:avm/res/web/site:0.15.1' = {
   params: {
     kind: kind
     name: name
+    location: location
     tags: union(tags, { 'azd-service-name': serviceName })
     serverFarmResourceId: appServicePlanId
     managedIdentities: {
@@ -76,7 +77,6 @@ module api 'br/public:avm/res/web/site:0.15.1' = {
       ]
     }
     functionAppConfig: {
-      location: location
       deployment: {
         storage: {
           type: 'blobContainer'
