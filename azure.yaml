@@ -2,9 +2,9 @@
 
 name: remote-mcp-functions-typescript
 metadata:
-  template: remote-mcp-functions-typescript@1.0.0-beta
+  template: remote-mcp-functions-typescript@1.0.1
 services:
-  processor:
+  api:
     project: .
     language: js
     host: function
