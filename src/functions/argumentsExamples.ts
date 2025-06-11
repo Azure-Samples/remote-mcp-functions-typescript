@@ -19,12 +19,12 @@ app.mcpTool("mcpToolTriggerWithArguments", {
   toolProperties: [
     {
       propertyName: "latitude",
-      propertyValue: "string",
+      propertyType: "string",
       description: "Latitude of the Location",
     },
     {
       propertyName: "longitude",
-      propertyValue: "string",
+      propertyType: "string",
       description: "Longitude of the Location",
     },
   ],
