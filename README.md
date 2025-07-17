@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/azure-samples-remote-mcp-functions-typescript-badge.png)](https://mseep.ai/app/azure-samples-remote-mcp-functions-typescript)
+
 <!--
 ---
 name: Remote MCP with Azure Functions (Node.js/TypeScript/JavaScript)
