@@ -11,7 +11,7 @@
     "test": "echo \"No tests yet...\""
   },
   "dependencies": {
-    "@azure/functions": "4.7.3-beta.0",
+    "@azure/functions": "4.8.0",
     "zod": "^3.24.2"
   },
   "devDependencies": {
