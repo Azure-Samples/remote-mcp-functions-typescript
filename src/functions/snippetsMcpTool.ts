@@ -1,4 +1,4 @@
-import { app, InvocationContext, input, output } from "@azure/functions";
+import { app, InvocationContext, input, output, arg } from "@azure/functions";
 
 // Constants matching the C# ToolsInformation class
 const GET_SNIPPET_TOOL_NAME = "getsnippets";
@@ -11,7 +11,6 @@ const SNIPPET_NAME_PROPERTY_NAME = "snippetname";
 const SNIPPET_PROPERTY_NAME = "snippet";
 const SNIPPET_NAME_PROPERTY_DESCRIPTION = "The name of the snippet.";
 const SNIPPET_PROPERTY_DESCRIPTION = "The code snippet.";
-const PROPERTY_TYPE = "string";
 
 // Define blob input and output bindings
 const blobInputBinding = input.storageBlob({
@@ -89,13 +88,9 @@ export async function saveSnippet(
 app.mcpTool("getSnippet", {
   toolName: GET_SNIPPET_TOOL_NAME,
   description: GET_SNIPPET_TOOL_DESCRIPTION,
-  toolProperties: [
-    {
-      propertyName: SNIPPET_NAME_PROPERTY_NAME,
-      propertyType: PROPERTY_TYPE,
-      description: SNIPPET_NAME_PROPERTY_DESCRIPTION,
-    },
-  ],
+  toolProperties: {
+    [SNIPPET_NAME_PROPERTY_NAME]: arg.string().describe(SNIPPET_NAME_PROPERTY_DESCRIPTION)
+  },
   extraInputs: [blobInputBinding],
   handler: getSnippet,
 });
@@ -104,18 +99,10 @@ app.mcpTool("getSnippet", {
 app.mcpTool("saveSnippet", {
   toolName: SAVE_SNIPPET_TOOL_NAME,
   description: SAVE_SNIPPET_TOOL_DESCRIPTION,
-  toolProperties: [
-    {
-      propertyName: SNIPPET_NAME_PROPERTY_NAME,
-      propertyType: PROPERTY_TYPE,
-      description: SNIPPET_NAME_PROPERTY_DESCRIPTION,
-    },
-    {
-      propertyName: SNIPPET_PROPERTY_NAME,
-      propertyType: PROPERTY_TYPE,
-      description: SNIPPET_PROPERTY_DESCRIPTION,
-    },
-  ],
+  toolProperties: {
+    [SNIPPET_NAME_PROPERTY_NAME]: arg.string().describe(SNIPPET_NAME_PROPERTY_DESCRIPTION),
+    [SNIPPET_PROPERTY_NAME]: arg.string().describe(SNIPPET_PROPERTY_DESCRIPTION)
+  },
   extraOutputs: [blobOutputBinding],
   handler: saveSnippet,
 });
