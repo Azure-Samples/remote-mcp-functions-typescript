@@ -95,6 +95,67 @@ app.mcpTool("getSnippet", {
   handler: getSnippet,
 });
 
+// Import Azure Storage SDK for listing blobs
+import { BlobServiceClient } from "@azure/storage-blob";
+
+// Summarize multiple snippets at once
+export async function summarizeSnippets(
+  _toolArguments: unknown,
+  context: InvocationContext
+): Promise<string> {
+  console.info("Summarizing snippets");
+
+  try {
+    // Get the storage connection string
+    const connectionString = process.env.AzureWebJobsStorage;
+    if (!connectionString) {
+      return "❌ Azure Storage connection string not configured";
+    }
+
+    // Create blob service client
+    const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
+    const containerClient = blobServiceClient.getContainerClient("snippets");
+    
+    if (!(await containerClient.exists())) {
+      return "❌ No snippets container found";
+    }
+
+    let summary = `📊 **Snippets Summary**\n\n`;
+    let totalWords = 0;
+    let totalChars = 0;
+
+    // Read and display all snippets
+    for await (const blob of containerClient.listBlobsFlat()) {
+      const blobClient = containerClient.getBlobClient(blob.name);
+      const response = await blobClient.download();
+      
+      if (response.readableStreamBody) {
+        const chunks = [];
+        for await (const chunk of response.readableStreamBody) {
+          chunks.push(chunk);
+        }
+        const content = Buffer.concat(chunks).toString();
+        const words = content.trim().split(/\s+/).length;
+        const chars = content.length;
+        
+        totalWords += words;
+        totalChars += chars;
+        
+        const fileName = blob.name.replace('.json', '');
+        summary += `**${fileName}** (${words} words, ${chars} chars)\n`;
+        summary += `\`\`\`\n${content}\n\`\`\`\n\n`;
+      }
+    }
+
+    summary = `📊 **Snippets Summary** (${totalWords} total words, ${totalChars} total chars)\n\n` + summary;
+    return summary;
+
+  } catch (error) {
+    console.error("Error in summarizeSnippets:", error);
+    return `❌ Error generating summary: ${error instanceof Error ? error.message : 'Unknown error'}`;
+  }
+}
+
 // Register the SaveSnippet tool
 app.mcpTool("saveSnippet", {
   toolName: SAVE_SNIPPET_TOOL_NAME,
@@ -105,4 +166,14 @@ app.mcpTool("saveSnippet", {
   },
   extraOutputs: [blobOutputBinding],
   handler: saveSnippet,
+});
+
+// Register the SummarizeSnippets tool
+app.mcpTool("summarizeSnippets", {
+  toolName: "summarize_snippets",
+  description: "Analyze and summarize all code snippets in storage with statistics and insights",
+  toolProperties: {
+    // No parameters needed - analyzes all snippets in storage
+  },
+  handler: summarizeSnippets,
 });
