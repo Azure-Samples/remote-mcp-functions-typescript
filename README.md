@@ -73,19 +73,19 @@ An Azure Storage Emulator is needed for this particular sample because we will s
    func start
    ```
 
-> **Note** by default this will use the webhooks route: `/runtime/webhooks/mcp/sse`.  Later we will use this in Azure to set the key on client/host calls: `/runtime/webhooks/mcp/sse?code=<system_key>`
+> **Note** by default this will use the webhooks route: `/runtime/webhooks/mcp`.  Later we will use this in Azure to set the key on client/host calls: `/runtime/webhooks/mcp?code=<system_key>`
 
 ## Use the *local* MCP server from within a client/host
 
 ### VS Code - Copilot Edits
 
-1. **Add MCP Server** from command palette and add URL to your running Function app's SSE endpoint:
+1. **Add MCP Server** from command palette and add URL to your running Function app's mcp endpoint:
     ```shell
-    http://0.0.0.0:7071/runtime/webhooks/mcp/sse
+    http://0.0.0.0:7071/runtime/webhooks/mcp
     ```
 
 1. Select **HTTP (Server-Sent-Events)** for the type of MCP server to add.
-1. Enter the URL to your running function app's SSE endpoint
+1. Enter the URL to your running function app's mcp endpoint
 1. Enter the server ID. (This can be any name you want)
 1. Choose if you want to run this in your User settings (available to all apps for you) or to your Workspace settings (available to this app, only)
 1. **List MCP Servers** from command palette and start the server. The previous step may have already started your local server. If so, you can skip this step.
@@ -121,10 +121,10 @@ An Azure Storage Emulator is needed for this particular sample because we will s
    ```
 
 1. CTRL click to load the MCP Inspector web app from the URL displayed by the app (e.g. http://0.0.0.0:5173/#resources)
-1. Set the transport type to `SSE` 
-1. Set the URL to your running Function app's SSE endpoint and **Connect**:
+1. Set the transport type to `http` 
+1. Set the URL to your running Function app's mcp endpoint and **Connect**:
     ```shell
-    http://0.0.0.0:7071/runtime/webhooks/mcp/sse
+    http://0.0.0.0:7071/runtime/webhooks/mcp
     ```
 1. **List Tools**.  Click on a tool and **Run Tool**.  
 
@@ -166,26 +166,32 @@ Optionally, you can opt-in to a VNet being used in the sample. (If you choose th
 azd env set VNET_ENABLED true
 ```
 
-Run this [azd](https://aka.ms/azd) command to provision the function app, with any required Azure resources, and deploy your code:
+Run these [azd](https://aka.ms/azd) commands to provision the function app, with any required Azure resources, and deploy your code:
 
 ```shell
-azd up
+azd provision
+```
+
+Wait a few minutes for access permissions to take effect, then run 
+
+```shell
+azd deploy
 ```
 
 > **Note** [API Management]() can be used for improved security and policies over your MCP Server, and [App Service built-in authentication](https://learn.microsoft.com/en-us/azure/app-service/overview-authentication-authorization) can be used to set up your favorite OAuth provider including Entra.  
 
 ## Connect to your *remote* MCP server function app from a client
 
-Your client will need a key in order to invoke the new hosted SSE endpoint, which will be of the form `https://<funcappname>.azurewebsites.net/runtime/webhooks/mcp/sse`. The hosted function requires a system key by default which can be obtained from the [portal](https://learn.microsoft.com/en-us/azure/azure-functions/function-keys-how-to?tabs=azure-portal) or the CLI (`az functionapp keys list --resource-group <resource_group> --name <function_app_name>`). Obtain the system key named `mcp_extension`.
+Your client will need a key in order to invoke the new hosted SSE endpoint, which will be of the form `https://<funcappname>.azurewebsites.net/runtime/webhooks/mcp`. The hosted function requires a system key by default which can be obtained from the [portal](https://learn.microsoft.com/en-us/azure/azure-functions/function-keys-how-to?tabs=azure-portal) or the CLI (`az functionapp keys list --resource-group <resource_group> --name <function_app_name>`). Obtain the system key named `mcp_extension`.
 
 ### Connect to remote MCP server in MCP Inspector
 For MCP Inspector, you can include the key in the URL: 
 ```plaintext
-https://<funcappname>.azurewebsites.net/runtime/webhooks/mcp/sse?code=<your-mcp-extension-system-key>
+https://<funcappname>.azurewebsites.net/runtime/webhooks/mcp?code=<your-mcp-extension-system-key>
 ```
 
 ### Connect to remote MCP server in VS Code - GitHub Copilot
-For GitHub Copilot within VS Code, you should set the key as the `x-functions-key` header in `mcp.json`, and you would use `https://<funcappname>.azurewebsites.net/runtime/webhooks/mcp/sse` for the URL. The following example is from the `mcp.json` file included in this repository and uses an input to prompt you to provide the key when you start the server from VS Code.  Your `mcp.json` file looks like this:
+For GitHub Copilot within VS Code, you should set the key as the `x-functions-key` header in `mcp.json`, and you would use `https://<funcappname>.azurewebsites.net/runtime/webhooks/mcp` for the URL. The following example is from the `mcp.json` file included in this repository and uses an input to prompt you to provide the key when you start the server from VS Code.  Your `mcp.json` file looks like this:
 
 ```json
 {
@@ -204,15 +210,15 @@ For GitHub Copilot within VS Code, you should set the key as the `x-functions-ke
     ],
     "servers": {
         "remote-mcp-function": {
-            "type": "sse",
-            "url": "https://${input:functionapp-name}.azurewebsites.net/runtime/webhooks/mcp/sse",
+            "type": "http",
+            "url": "https://${input:functionapp-name}.azurewebsites.net/runtime/webhooks/mcp",
             "headers": {
                 "x-functions-key": "${input:functions-mcp-extension-system-key}"
             }
         },
         "local-mcp-function": {
-            "type": "sse",
-            "url": "http://0.0.0.0:7071/runtime/webhooks/mcp/sse"
+            "type": "http",
+            "url": "http://0.0.0.0:7071/runtime/webhooks/mcp"
         }
     }
 }
@@ -240,7 +246,7 @@ For GitHub Copilot within VS Code, you should set the key as the `x-functions-ke
 
 ## Redeploy your code
 
-You can run the `azd up` command as many times as you need to both provision your Azure resources and deploy code updates to your function app.
+You can run the `azd deploy` command as many times as you need to deploy code updates to your function app.
 
 >[!NOTE]
 >Deployed code files are always overwritten by the latest deployment package.
@@ -362,11 +368,11 @@ app.mcpTool('savesnippet', {
 });
 ```
 
-Note that the `host.json` file also includes a reference to the experimental bundle, which is required for apps using this feature:
+Note that the `host.json` file also includes a reference to the extension bundle, which is required for apps using this feature:
 
 ```json
 "extensionBundle": {
-  "id": "Microsoft.Azure.Functions.ExtensionBundle.Experimental",
+  "id": "Microsoft.Azure.Functions.ExtensionBundle",
   "version": "[4.*, 5.0.0)"
 }
 ```
