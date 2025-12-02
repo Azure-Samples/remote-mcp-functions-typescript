@@ -377,6 +377,43 @@ Note that the `host.json` file also includes a reference to the extension bundle
 }
 ```
 
+## Troubleshooting
+
+### Deployment Slot Issues with Experimental Extension Bundle
+
+When deploying to Azure Functions deployment slots, you may encounter issues where the MCP functions fail to load. This is a known issue with how the Azure Functions Host caches extension bundles.
+
+**Symptoms:**
+- MCP functions (like `hello: mcpToolTrigger`) are missing from the Azure Portal's Functions list for the deployment slot
+- The required system key `mcp_extension` is not generated
+- MCP endpoint returns 404 Not Found or 401 Unauthorized errors
+
+**Root Cause:**
+The Functions Host may cache the standard extension bundle and fail to detect and download the experimental MCP extension bundle (`Microsoft.Azure.Functions.ExtensionBundle.Experimental`) during cold starts on deployment slots.
+
+**Workaround:**
+If you experience this issue, follow these steps:
+
+1. Access the Kudu Console/SSH for your deployment slot:
+   ```
+   https://<your-function-app-name>-<slot-name>.scm.azurewebsites.net
+   ```
+
+2. Clear the extension bundle cache:
+   ```bash
+   cd /FuncExtensionBundles/
+   rm -rf *
+   ```
+
+3. Restart the Function App slot using a full STOP and START (not just restart):
+   - In the Azure Portal, go to your Function App slot
+   - Click **Stop**, wait for it to fully stop
+   - Click **Start**
+
+4. The MCP tools should now register successfully
+
+**Note:** This is an Azure Functions Host behavior. We recommend filing feedback through the Azure Portal or GitHub if you encounter this issue consistently.
+
 ## Next Steps
 
 - Add [API Management](https://aka.ms/mcp-remote-apim-auth) to your MCP server (auth, gateway, policies, more!)
