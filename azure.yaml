@@ -8,3 +8,4 @@ services:
     project: .
     language: js
     host: function
+    remoteBuild: true
