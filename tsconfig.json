@@ -6,5 +6,9 @@
     "rootDir": ".",
     "sourceMap": true,
     "strict": false
-  }
+  },
+  "exclude": [
+    "src/app",
+    "node_modules"
+  ]
 }

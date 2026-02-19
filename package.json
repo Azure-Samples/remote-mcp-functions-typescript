@@ -11,7 +11,7 @@
     "test": "echo \"No tests yet...\""
   },
   "dependencies": {
-    "@azure/functions": "^4.9.0",
+    "@azure/functions": "4.12.0-preview.2",
     "zod": "^3.24.2"
   },
   "devDependencies": {
@@ -19,5 +19,5 @@
     "rimraf": "^5.0.0",
     "typescript": "^4.0.0"
   },
-  "main": "dist/src/{index.js,functions/*.js}"
+  "main": "dist/src/index.js"
 }
