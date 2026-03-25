@@ -377,6 +377,87 @@ Note that the `host.json` file also includes a reference to the extension bundle
 }
 ```
 
+## Weather App Sample
+
+A sample MCP App that displays weather information with an interactive UI.
+
+### What Are MCP Apps?
+
+[MCP Apps](https://blog.modelcontextprotocol.io/posts/2026-01-26-mcp-apps/) let tools return interactive interfaces instead of plain text. When a tool declares a UI resource, the host renders it in a sandboxed iframe where users can interact directly.
+
+#### MCP Apps = Tool + UI Resource
+
+The architecture relies on two MCP primitives:
+
+1. **Tools** with UI metadata pointing to a resource URI
+2. **Resources** containing bundled HTML/JavaScript served via the `ui://` scheme
+
+Azure Functions makes it easy to build both.
+
+### Prerequisites for Weather App
+
+- [Node.js](https://nodejs.org/) (for building the UI)
+- [Azure Functions Core Tools v4](https://learn.microsoft.com/azure/azure-functions/functions-run-local)
+- [Visual Studio Code](https://code.visualstudio.com/)
+
+### Getting Started with Weather App
+
+#### 1. Build the UI
+
+The UI must be bundled before running the function app:
+
+    ```shell
+    cd src/app
+    npm install
+    npm run build
+    ```
+
+This creates a bundled `src/app/dist/index.html` file that the function serves.
+
+#### 2. Build and run the Function App
+
+1. Install dependencies for the Function app:
+
+    ```shell
+    cd ../../
+    npm install
+    ```
+
+1. Build the project:
+   ```shell
+   npm run build
+   ```
+
+1. Start the Functions host locally:
+   ```shell
+   func start
+   ```
+
+#### 3. Connect from VS Code
+
+Open **.vscode/mcp.json**. Find the server called _local-mcp-function_ and click **Start** above the name. The server is already set up with the running Function app's MCP endpoint:
+
+    ```shell
+    http://0.0.0.0:7071/runtime/webhooks/mcp
+    ```
+
+#### 4. Prompt the Agent
+
+Ask Copilot: "What's the weather in Seattle?" 
+
+#### How It Works Together
+
+1. User asks: "What's the weather in Seattle?"
+2. Agent calls the `getWeather` tool
+3. Tool returns weather data (JSON) **and** the host sees the `ui.resourceUri` metadata
+4. Host fetches the UI resource from `ui://weather/index.html`
+5. Host renders the HTML in a sandboxed iframe, passing the tool result as context
+6. User sees an interactive weather widget instead of plain text
+
+#### The UI (TypeScript)
+
+The frontend in `src/app/src/weatherMcpApp.ts` receives the tool result and renders the weather display. It's bundled with Vite into a single `index.html` that the resource serves.
+
 ## Next Steps
 
 - Add [API Management](https://aka.ms/mcp-remote-apim-auth) to your MCP server (auth, gateway, policies, more!)
