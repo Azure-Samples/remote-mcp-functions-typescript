@@ -9,7 +9,7 @@
     }
   },
   "extensionBundle": {
-   "id": "Microsoft.Azure.Functions.ExtensionBundle.Preview",
-   "version": "[4.40, 5.0.0)"
+    "id": "Microsoft.Azure.Functions.ExtensionBundle.Preview",
+    "version": "[4.40, 5.0.0)"
   }
 }

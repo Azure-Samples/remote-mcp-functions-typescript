@@ -1,23 +1,21 @@
 {
-  "name": "typescriptmcptool",
+  "name": "mcp-weather-app",
   "version": "1.0.0",
-  "description": "",
+  "description": "Azure Functions MCP Weather App with interactive weather widget",
   "scripts": {
     "build": "tsc",
+    "build:app": "cd src/app && npm install && npm run build",
     "watch": "tsc -w",
     "clean": "rimraf dist",
-    "prestart": "npm run clean && npm run build",
+    "prestart": "npm run clean && npm run build:app && npm run build",
     "start": "func start",
     "test": "echo \"No tests yet...\""
   },
   "dependencies": {
-    "@azure/functions": "file:C:\\Users\\swapnilnagar\\workplace\\nodejs\\azure-functions-nodejs-library",
-    "qrcode": "^1.5.4",
-    "zod": "^3.24.2"
+    "@azure/functions": "file:../../../nodejs/azure-functions-nodejs-library"
   },
   "devDependencies": {
     "@types/node": "^20.x",
-    "@types/qrcode": "^1.5.5",
     "rimraf": "^5.0.0",
     "typescript": "^4.0.0"
   },
