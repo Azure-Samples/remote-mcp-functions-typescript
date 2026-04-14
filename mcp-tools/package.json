@@ -1,7 +1,7 @@
 {
-  "name": "typescriptmcptool",
+  "name": "mcp-tools",
   "version": "1.0.0",
-  "description": "",
+  "description": "Azure Functions MCP Tool triggers with structured content support",
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
@@ -11,7 +11,7 @@
     "test": "echo \"No tests yet...\""
   },
   "dependencies": {
-    "@azure/functions": "file:C:\\Users\\swapnilnagar\\workplace\\nodejs\\azure-functions-nodejs-library",
+    "@azure/functions": "file:../../../nodejs/azure-functions-nodejs-library",
     "qrcode": "^1.5.4",
     "zod": "^3.24.2"
   },

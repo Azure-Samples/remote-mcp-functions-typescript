@@ -37,6 +37,14 @@ Below is the architecture diagram for the Remote MCP Server using Azure Function
 
 ![Architecture Diagram](architecture-diagram.png)
 
+## Repository layout
+
+This repository now includes two independently deployable Function Apps:
+
+1. mcp-tools contains MCP Tool triggers, rich content samples, and snippet storage samples.
+2. mcp-weather-app contains the MCP App weather sample (resource + weather tool).
+
+Each app has its own azure.yaml, package.json, and README.md. Run azd commands from inside each app folder to provision and deploy it independently.
 ## Prerequisites
 
 + [Node.js](https://nodejs.org/en/download/) version 18 or higher
@@ -360,6 +368,34 @@ app.mcpTool('savesnippet', {
     ],
     extraOutputs: [blobOutputBinding],
     handler: saveSnippet
+});
+```
+
+## Result Schema (UseResultSchema)
+
+The TypeScript MCP tool trigger now supports explicitly defining `resultSchema` on `app.mcpTool(...)` options.
+When present and valid JSON, it is sent with `useResultSchema: true` so the host can use your declared result shape.
+
+```typescript
+const imageInfoSchema = JSON.stringify({
+    type: "object",
+    properties: {
+        imageId: { type: "string" },
+        format: { type: "string" },
+        tags: { type: "array", items: { type: "string" } }
+    },
+    required: ["imageId", "format", "tags"],
+    additionalProperties: false
+});
+
+app.mcpTool("GetImageInfo", {
+    toolName: "GetImageInfo",
+    description: "Get image information",
+    toolProperties: {
+        imageId: arg.string().describe("Optional image identifier").optional()
+    },
+    resultSchema: imageInfoSchema,
+    handler: getImageInfo
 });
 ```
 
