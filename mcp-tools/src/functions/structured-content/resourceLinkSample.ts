@@ -10,7 +10,7 @@
  */
 
 import { app, InvocationContext, arg } from "@azure/functions";
-import type { ResourceLinkContentBlock } from "@azure/functions";
+import { McpResourceLinkContent } from "@azure/functions";
 
 /**
  * Returns a resource link content block.
@@ -18,25 +18,24 @@ import type { ResourceLinkContentBlock } from "@azure/functions";
 export async function getResourceLink(
     toolArguments: unknown,
     context: InvocationContext
-): Promise<ResourceLinkContentBlock> {
+): Promise<McpResourceLinkContent> {
     const args = context.triggerMetadata.mcptoolargs as { resource_id?: string };
     const resourceId = args?.resource_id || "default";
 
     context.log(`Fetching resource: ${resourceId}`);
 
-    return {
-        type: 'resource_link',
+    return new McpResourceLinkContent({
         uri: `file://resources/${resourceId}.data`,
         name: `Resource ${resourceId}`,
         description: `Resource file for ${resourceId}`,
         mimeType: "application/octet-stream"
-    };
+    });
 }
 
 // Register the resourceLink tool
 app.mcpTool('resourceLink', {
     toolName: 'resourceLink',
-    description: 'Returns a resource link content block (duck-typing demo).',
+    description: 'Returns a resource link content block.',
     toolProperties: {
         resource_id: arg.string().describe('The resource identifier').optional()
     },

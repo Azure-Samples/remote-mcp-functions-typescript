@@ -11,7 +11,7 @@
     "test": "echo \"No tests yet...\""
   },
   "dependencies": {
-    "@azure/functions": "file:C:\\Users\\swapnilnagar\\workplace\\nodejs\\azure-functions-nodejs-library",
+    "@azure/functions": "^4.13.0",
     "qrcode": "^1.5.4",
     "zod": "^3.24.2"
   },
