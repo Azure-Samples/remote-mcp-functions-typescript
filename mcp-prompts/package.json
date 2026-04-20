@@ -1,0 +1,22 @@
+{
+  "name": "mcp-prompts",
+  "version": "1.0.0",
+  "description": "Azure Functions MCP Prompt triggers sample",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "clean": "rimraf dist",
+    "prestart": "npm run clean && npm run build",
+    "start": "func start",
+    "test": "echo \"No tests yet...\""
+  },
+  "dependencies": {
+    "@azure/functions": "C:\\Users\\swapnilnagar\\workplace\\nodejs\\azure-functions-nodejs-library"
+  },
+  "devDependencies": {
+    "@types/node": "^20.x",
+    "rimraf": "^5.0.0",
+    "typescript": "^4.0.0"
+  },
+  "main": "dist/src/index.js"
+}
