@@ -16,27 +16,13 @@
  */
 
 import { app, McpContent, arg } from '@azure/functions';
-import type { InvocationContext, CallToolResult, ImageContentBlock, TextContentBlock } from '@azure/functions';
+import type { InvocationContext } from '@azure/functions';
+import { McpTextContent, McpImageContent, McpToolResponse } from '@azure/functions';
 import * as QRCode from 'qrcode';
 
 // Simple placeholder image payload for sample purposes (1x1 transparent PNG).
 const base64ImageData =
     'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
-
-class TextContentBlockValue implements TextContentBlock {
-    readonly type = 'text' as const;
-
-    constructor(public text: string) {}
-}
-
-class ImageContentBlockValue implements ImageContentBlock {
-    readonly type = 'image' as const;
-
-    constructor(
-        public data: string,
-        public mimeType?: string
-    ) {}
-}
 
 // ── Option 1: McpContent decorator ──────────────────────────────────────────
 //
@@ -95,12 +81,8 @@ app.mcpTool('GetImageInfo', {
 export async function getImageDirect(
     _toolArguments: unknown,
     _context: InvocationContext
-): Promise<ImageContentBlock> {
-    return {
-        type: 'image',
-        data: base64ImageData,
-        mimeType: 'image/png',
-    };
+): Promise<McpImageContent> {
+    return new McpImageContent({ data: base64ImageData, mimeType: 'image/png' });
 }
 
 app.mcpTool('GetImageDirect', {
@@ -119,10 +101,10 @@ app.mcpTool('GetImageDirect', {
 export async function getImageWithText(
     _toolArguments: unknown,
     _context: InvocationContext
-): Promise<[{ type: 'text'; text: string }, ImageContentBlock]> {
+): Promise<[McpTextContent, McpImageContent]> {
     return [
-        { type: 'text', text: 'Here is the Azure Functions logo' },
-        { type: 'image', data: base64ImageData, mimeType: 'image/png' },
+        new McpTextContent('Here is the Azure Functions logo'),
+        new McpImageContent({ data: base64ImageData, mimeType: 'image/png' }),
     ];
 }
 
@@ -142,18 +124,18 @@ app.mcpTool('GetImageWithText', {
 export async function getImageWithMetadata(
     _toolArguments: unknown,
     _context: InvocationContext
-): Promise<CallToolResult> {
-    return {
+): Promise<McpToolResponse> {
+    return new McpToolResponse({
         content: [
-            { type: 'text', text: 'Here is the image' },
-            { type: 'image', data: base64ImageData, mimeType: 'image/png' },
+            new McpTextContent('Here is the image'),
+            new McpImageContent({ data: base64ImageData, mimeType: 'image/png' }),
         ],
         structuredContent: {
             imageId: 'logo',
             format: 'png',
             tags: ['functions'],
         },
-    };
+    });
 }
 
 app.mcpTool('GetImageWithMetadata', {
@@ -173,7 +155,7 @@ app.mcpTool('GetImageWithMetadata', {
 export async function generateQrCode(
     toolArguments: unknown,
     context: InvocationContext
-): Promise<ImageContentBlock> {
+): Promise<McpImageContent> {
     const args = (toolArguments ?? {}) as { text?: string };
     const text = typeof args.text === 'string' && args.text.trim() ? args.text.trim() : 'Hello QR';
 
@@ -191,11 +173,7 @@ export async function generateQrCode(
         throw new Error('Failed to generate base64 QR code image data.');
     }
 
-    return {
-        type: 'image',
-        data: base64Data,
-        mimeType: 'image/png',
-    };
+    return new McpImageContent({ data: base64Data, mimeType: 'image/png' });
 }
 
 app.mcpTool('GenerateQrCode', {
@@ -215,7 +193,7 @@ app.mcpTool('GenerateQrCode', {
 export async function generateBadge(
     _toolArguments: unknown,
     _context: InvocationContext
-): Promise<(TextContentBlock | ImageContentBlock)[]> {
+): Promise<(McpTextContent | McpImageContent)[]> {
     const args = (_context.triggerMetadata.mcptoolargs ?? {}) as {
         label?: string;
         value?: string;
@@ -247,8 +225,8 @@ export async function generateBadge(
 
     // Return class instances — duck-typing still emits multi_content_result.
     return [
-        new TextContentBlockValue(`Badge: ${label} — ${value}`),
-        new ImageContentBlockValue(svgBase64, 'image/svg+xml'),
+        new McpTextContent(`Badge: ${label} — ${value}`),
+        new McpImageContent({ data: svgBase64, mimeType: 'image/svg+xml' }),
     ];
 }
 
@@ -261,4 +239,35 @@ app.mcpTool('GenerateBadge', {
         color: arg.string().describe('Badge color (hex or SVG color, default: #4CAF50)').optional(),
     },
     handler: generateBadge,
+});
+
+// ── Option 7: Raw MCP SDK-like response shape (warning path) ────────────────
+//
+// This intentionally returns the plain object shape commonly used by
+// @modelcontextprotocol/sdk. The Functions library does not auto-convert this
+// shape, and will log a one-time warning before serializing it as plain text.
+
+export async function getSdkStyleResponseWarningSample(
+    _toolArguments: unknown,
+    _context: InvocationContext
+): Promise<unknown> {
+    return {
+        content: [
+            {
+                type: 'text',
+                text: 'This raw SDK-style result should trigger the warning path.',
+            },
+        ],
+        structuredContent: {
+            source: '@modelcontextprotocol/sdk-like-shape',
+            expectedBehavior: 'warning_then_plain_text_serialization',
+        },
+    };
+}
+
+app.mcpTool('GetSdkStyleResponseWarningSample', {
+    toolName: 'GetSdkStyleResponseWarningSample',
+    description: 'Returns a raw SDK-style response object to exercise the library warning path.',
+    toolProperties: {},
+    handler: getSdkStyleResponseWarningSample,
 });

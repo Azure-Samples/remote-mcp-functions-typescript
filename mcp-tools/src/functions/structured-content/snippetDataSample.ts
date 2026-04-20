@@ -11,7 +11,7 @@
  */
 
 import { app, InvocationContext, arg } from "@azure/functions";
-import type { CallToolResult } from "@azure/functions";
+import { McpToolResponse, McpTextContent } from "@azure/functions";
 
 // In-memory snippet storage (in production, use a database)
 const snippetCache: Record<string, string> = {
@@ -43,7 +43,7 @@ const snippetCache: Record<string, string> = {
 export async function getCodeSnippet(
     toolArguments: unknown,
     context: InvocationContext
-): Promise<CallToolResult> {
+): Promise<McpToolResponse> {
     const args = context.triggerMetadata.mcptoolargs as { snippet_name?: string };
     const snippetName = args?.snippet_name || "quickSort";
 
@@ -68,19 +68,19 @@ export async function getCodeSnippet(
         }
     };
 
-    return {
+    return new McpToolResponse({
         content: [
-            { type: 'text', text: `Snippet: ${snippetName} (${snippetData.lineCount} lines, ${snippetData.complexity})` },
-            { type: 'text', text: JSON.stringify(snippetData) },
+            new McpTextContent(`Snippet: ${snippetName} (${snippetData.lineCount} lines, ${snippetData.complexity})`),
+            new McpTextContent(JSON.stringify(snippetData)),
         ],
         structuredContent: snippetData,
-    };
+    });
 }
 
 // Register the snippet retrieval tool (named 'getCodeSnippet' to avoid collision with snippetsMcpTool)
 app.mcpTool('getCodeSnippet', {
     toolName: 'getCodeSnippet',
-    description: 'Retrieves a code snippet with full metadata as a CallToolResult (explicit structuredContent demo).',
+    description: 'Retrieves a code snippet with full metadata as an McpToolResponse (explicit structuredContent demo).',
     toolProperties: {
         snippet_name: arg.string()
             .describe('Name of the snippet to retrieve (quickSort, binarySearch, etc.)')
