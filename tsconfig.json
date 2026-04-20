@@ -10,6 +10,8 @@
   },
   "exclude": [
     "src/app",
-    "node_modules"
+    "node_modules",
+    "mcp-weather-app",
+    "mcp-tools"
   ]
 }
