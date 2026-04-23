@@ -243,6 +243,7 @@ azd deploy
 ```
 
 > **Note** [API Management](https://aka.ms/mcp-remote-apim-auth) can be used for improved security and policies over your MCP Server. 
+
 ### Deploy the mcp-tools or mcp-weather-app independently
 
 The `mcp-tools`, `mcp-weather-app`, and `mcp-prompts` folders each contain their own `azure.yaml` and can be provisioned and deployed as a separate Function App. Run the same `azd` flow from inside the app folder you want to deploy:
@@ -262,9 +263,29 @@ Each app reuses the shared infra under [infra/](infra/) but is deployed as its o
 ## Connect to remote MCP server in VS Code - GitHub Copilot
 For GitHub Copilot within VS Code, you use `https://<funcappname>.azurewebsites.net/runtime/webhooks/mcp` for the URL. The following example is from the `mcp.json` file included in this repository and uses an input to prompt you to provide the function name when you start the server from VS Code. The server is configured with buit-in MCP auth, so you'll be asked to login as well. Your `mcp.json` file looks like this:
 
+
+## Connect to your *remote* MCP server function app from a client
+
+Your client will need a key in order to invoke the new hosted SSE endpoint, which will be of the form `https://<funcappname>.azurewebsites.net/runtime/webhooks/mcp`. The hosted function requires a system key by default which can be obtained from the [portal](https://learn.microsoft.com/en-us/azure/azure-functions/function-keys-how-to?tabs=azure-portal) or the CLI (`az functionapp keys list --resource-group <resource_group> --name <function_app_name>`). Obtain the system key named `mcp_extension`.
+
+### Connect to remote MCP server in MCP Inspector
+For MCP Inspector, you can include the key in the URL: 
+```plaintext
+https://<funcappname>.azurewebsites.net/runtime/webhooks/mcp?code=<your-mcp-extension-system-key>
+```
+
+### Connect to remote MCP server in VS Code - GitHub Copilot
+For GitHub Copilot within VS Code, you should set the key as the `x-functions-key` header in `mcp.json`, and you would use `https://<funcappname>.azurewebsites.net/runtime/webhooks/mcp` for the URL. The following example is from the `mcp.json` file included in this repository and uses an input to prompt you to provide the key when you start the server from VS Code.  Your `mcp.json` file looks like this:
+
 ```json
 {
     "inputs": [
+        {
+            "type": "promptString",
+            "id": "functions-mcp-extension-system-key",
+            "description": "Azure Functions MCP Extension System Key",
+            "password": true
+        },
         {
             "type": "promptString",
             "id": "functionapp-name",
@@ -274,7 +295,10 @@ For GitHub Copilot within VS Code, you use `https://<funcappname>.azurewebsites.
     "servers": {
         "remote-mcp-function": {
             "type": "http",
-            "url": "https://${input:functionapp-name}.azurewebsites.net/runtime/webhooks/mcp"
+            "url": "https://${input:functionapp-name}.azurewebsites.net/runtime/webhooks/mcp",
+            "headers": {
+                "x-functions-key": "${input:functions-mcp-extension-system-key}"
+            }
         },
         "local-mcp-function": {
             "type": "http",
@@ -288,7 +312,7 @@ For GitHub Copilot within VS Code, you use `https://<funcappname>.azurewebsites.
 
 1. Enter the name of the function app that you created in the Azure Portal, when prompted by VS Code.
 
-1. Click Allow when prompted to authenticate with Microsoft, and then login. 
+1. Enter the `Azure Functions MCP Extension System Key` into the prompt. You can copy this from the Azure portal for your function app by going to the Functions menu item, then App Keys, and copying the `mcp_extension` key from the System Keys.
 
 1. In Copilot chat agent mode enter a prompt to trigger the tool, e.g., select some code and enter this prompt
 
@@ -554,7 +578,8 @@ The frontend in `src/app/src/weatherMcpApp.ts` receives the tool result and rend
 
 ## Next Steps
 
-- Add [API Management](https://aka.ms/mcp-remote-apim-auth) to your MCP server (gateway, policies, more!)
+- Add [API Management](https://aka.ms/mcp-remote-apim-auth) to your MCP server (auth, gateway, policies, more!)
+- Add [built-in auth](https://learn.microsoft.com/en-us/azure/app-service/overview-authentication-authorization) to your MCP server
 - Enable VNET using VNET_ENABLED=true flag
 - Learn more about the [Azure Functions MCP extension](https://learn.microsoft.com/azure/azure-functions/functions-bindings-mcp?pivots=programming-language-typescript)
-
+- Learn more about [related MCP efforts from Microsoft](https://github.com/microsoft/mcp/tree/main/Resources)
