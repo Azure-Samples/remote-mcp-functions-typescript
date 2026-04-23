@@ -70,6 +70,10 @@ An Azure Storage Emulator is needed for this particular sample because we will s
 
 ## Run your MCP Server locally from the terminal
 
+This repository contains multiple independently runnable Function Apps. Each app exposes its own MCP endpoint on the default Functions port (`7071`). To run more than one app at the same time, start each from a separate terminal and pass `--port` to avoid collisions.
+
+### Root snippets/tools app (this folder)
+
 1. Install dependencies
    ```shell
    npm install
@@ -85,9 +89,47 @@ An Azure Storage Emulator is needed for this particular sample because we will s
    func start
    ```
 
+### mcp-tools app
+
+Contains MCP Tool triggers for rich content samples (image, resource links, structured content) and snippet samples (save/get snippets via blob bindings). See [mcp-tools/README.md](mcp-tools/README.md) for details.
+
+```shell
+cd mcp-tools
+npm install
+npm run build
+func start
+```
+
+### mcp-weather-app
+
+Contains the MCP App sample: an MCP Resource trigger serving an interactive weather widget plus an MCP Tool trigger that calls Open-Meteo. See [mcp-weather-app/README.md](mcp-weather-app/README.md) for details.
+
+```shell
+cd mcp-weather-app
+npm install
+npm run build:app   # bundle the widget UI
+npm run build
+func start
+```
+
+### mcp-prompts app
+
+Contains MCP Prompt triggers (code review checklist, summarize content, generate documentation). See [mcp-prompts](mcp-prompts/) for details.
+
+```shell
+cd mcp-prompts
+npm install
+npm run build
+func start
+```
+
 > **Note** by default this will use the webhooks route: `/runtime/webhooks/mcp`.  Later we will use this in Azure to set the key on client/host calls: `/runtime/webhooks/mcp?code=<system_key>`
+>
+> If you want to run multiple apps simultaneously, give each its own port, e.g. `func start --port 7072`, and use that port when configuring the client.
 
 ## Use the *local* MCP server from within a client/host
+
+> The example URL below points to the root app on port `7071`. To connect to the **mcp-tools** app, **mcp-weather-app**, or **mcp-prompts** app, use the same `/runtime/webhooks/mcp` path against the port that app is listening on (see [mcp-tools/README.md](mcp-tools/README.md), [mcp-weather-app/README.md](mcp-weather-app/README.md), and the [mcp-prompts](mcp-prompts/) folder for the tools, weather widget, and prompts each app exposes).
 
 ### VS Code - Copilot Edits
 
@@ -201,6 +243,21 @@ azd deploy
 ```
 
 > **Note** [API Management](https://aka.ms/mcp-remote-apim-auth) can be used for improved security and policies over your MCP Server. 
+### Deploy the mcp-tools or mcp-weather-app independently
+
+The `mcp-tools`, `mcp-weather-app`, and `mcp-prompts` folders each contain their own `azure.yaml` and can be provisioned and deployed as a separate Function App. Run the same `azd` flow from inside the app folder you want to deploy:
+
+```shell
+cd mcp-tools          # or: cd mcp-weather-app  |  cd mcp-prompts
+azd init              # first time only
+azd env new           # first time only
+azd provision
+azd deploy
+```
+
+Each app reuses the shared infra under [infra/](infra/) but is deployed as its own Function App. See [mcp-tools/README.md](mcp-tools/README.md) and [mcp-weather-app/README.md](mcp-weather-app/README.md) for app-specific notes.
+
+> **Note** [API Management](https://aka.ms/mcp-remote-apim-auth) can be used for improved security and policies over your MCP Server, and [App Service built-in authentication](https://learn.microsoft.com/en-us/azure/app-service/overview-authentication-authorization) can be used to set up your favorite OAuth provider including Entra.  
 
 ## Connect to remote MCP server in VS Code - GitHub Copilot
 For GitHub Copilot within VS Code, you use `https://<funcappname>.azurewebsites.net/runtime/webhooks/mcp` for the URL. The following example is from the `mcp.json` file included in this repository and uses an input to prompt you to provide the function name when you start the server from VS Code. The server is configured with buit-in MCP auth, so you'll be asked to login as well. Your `mcp.json` file looks like this:
@@ -432,6 +489,12 @@ Azure Functions makes it easy to build both.
 - [Visual Studio Code](https://code.visualstudio.com/)
 
 ### Getting Started with Weather App
+
+> All commands in this section must be run from the [mcp-weather-app/](mcp-weather-app/) folder. Navigate there first:
+>
+> ```shell
+> cd mcp-weather-app
+> ```
 
 #### 1. Build the UI
 
