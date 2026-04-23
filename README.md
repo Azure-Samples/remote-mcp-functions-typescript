@@ -45,6 +45,14 @@ This repository now includes two independently deployable Function Apps:
 2. mcp-weather-app contains the MCP App weather sample (resource + weather tool).
 
 Each app has its own azure.yaml, package.json, and README.md. Run azd commands from inside each app folder to provision and deploy it independently.
+## Repository layout
+
+This repository now includes two independently deployable Function Apps:
+
+1. mcp-tools contains MCP Tool triggers, rich content samples, and snippet storage samples.
+2. mcp-weather-app contains the MCP App weather sample (resource + weather tool).
+
+Each app has its own azure.yaml, package.json, and README.md. Run azd commands from inside each app folder to provision and deploy it independently.
 ## Prerequisites
 
 + [Node.js](https://nodejs.org/en/download/) version 18 or higher
