@@ -1,4 +1,4 @@
-import { app, InvocationContext, PromptInvocationContext } from '@azure/functions';
+import { app, InvocationContext, promptArg, PromptInvocationContext } from '@azure/functions';
 import { SummarizePromptName, SummarizePromptDescription } from '../promptsInformation';
 
 /**
@@ -9,17 +9,15 @@ import { SummarizePromptName, SummarizePromptDescription } from '../promptsInfor
 app.mcpPrompt('SummarizeContent', {
     promptName: SummarizePromptName,
     description: SummarizePromptDescription,
-    promptArguments: [
-        { name: 'topic', description: 'The topic or content to summarize.', required: true },
-        {
-            name: 'audience',
-            description: "Target audience (e.g., 'executive', 'developer', 'beginner').",
-            required: false,
-        },
-    ],
-    handler: (prompt: PromptInvocationContext, context: InvocationContext): string => {
-        const topic = prompt.arguments.topic ?? '';
-        const audience = prompt.arguments.audience;
+    promptArguments: {
+        topic: promptArg.describe('The topic or content to summarize.').isRequired(),
+        audience: promptArg.describe(
+            "Target audience (e.g., 'executive', 'developer', 'beginner').",
+        ),
+    },
+    handler: async (ctx: PromptInvocationContext, context: InvocationContext) => {
+        const topic = ctx.arguments.topic ?? '';
+        const audience = ctx.arguments.audience;
 
         context.log(`Summarize prompt invoked for topic: ${topic}`);
 

@@ -1,22 +1,21 @@
-import { app, InvocationContext, PromptInvocationContext } from '@azure/functions';
+import { app, InvocationContext, promptArg, PromptInvocationContext } from '@azure/functions';
 import { GenerateDocsPromptName, GenerateDocsPromptDescription } from '../promptsInformation';
 
 /**
- * Prompt that reads its arguments directly from the PromptInvocationContext,
- * mirroring the .NET sample that uses context.Arguments?.GetValueOrDefault(...).
- * Useful when arguments are configured by the MCP client rather than declared
- * up-front on the trigger.
+ * Prompt that declares its arguments up-front using the `promptArg` builder,
+ * mirroring the .NET sample that uses [McpPromptArgument] attributes. Arguments
+ * are validated by the runtime and surfaced on `ctx.arguments` in the handler.
  */
 app.mcpPrompt('GenerateDocumentation', {
     promptName: GenerateDocsPromptName,
     description: GenerateDocsPromptDescription,
-    promptArguments: [
-        { name: 'function_name', description: 'The function to document.', required: false },
-        { name: 'style', description: "Documentation style (e.g., 'concise', 'verbose').", required: false },
-    ],
-    handler: (prompt: PromptInvocationContext, context: InvocationContext): string => {
-        const functionName = prompt.arguments.function_name ?? '(unknown)';
-        const style = prompt.arguments.style ?? 'concise';
+    promptArguments: {
+        function_name: promptArg.describe('The function to document.').isRequired(),
+        style: promptArg.describe("Documentation style (e.g., 'concise', 'verbose')."),
+    },
+    handler: async (ctx: PromptInvocationContext, context: InvocationContext) => {
+        const functionName = ctx.arguments.function_name ?? '(unknown)';
+        const style = ctx.arguments.style ?? 'concise';
 
         context.log(`Generate docs prompt invoked for function: ${functionName}`);
 

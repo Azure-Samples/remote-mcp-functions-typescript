@@ -3,12 +3,12 @@ import { CodeReviewPromptName, CodeReviewPromptDescription } from '../promptsInf
 
 /**
  * Simple prompt with no arguments. Returns a static code review checklist.
- * Demonstrates the basic app.mcpPrompt usage.
+ * Demonstrates the basic `app.mcpPrompt` usage.
  */
 app.mcpPrompt('CodeReviewChecklist', {
     promptName: CodeReviewPromptName,
     description: CodeReviewPromptDescription,
-    handler: (_prompt: PromptInvocationContext, context: InvocationContext): string => {
+    handler: async (_ctx: PromptInvocationContext, context: InvocationContext) => {
         context.log('Code review checklist prompt invoked.');
 
         return [
