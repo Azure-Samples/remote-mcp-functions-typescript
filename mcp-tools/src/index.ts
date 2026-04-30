@@ -7,4 +7,6 @@ app.setup({
 // Import functions to register them
 import './functions/helloMcpTool';
 import './functions/snippetsMcpTool';
-import './functions/weatherMcpApp';
+import './functions/structured-content/imageContentSample';
+import './functions/structured-content/resourceLinkSample';
+import './functions/structured-content/snippetDataSample';

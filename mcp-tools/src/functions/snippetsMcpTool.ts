@@ -28,28 +28,24 @@ export async function getSnippet(
   _toolArguments: unknown,
   context: InvocationContext
 ): Promise<string> {
-  console.info("Getting snippet");
-
-  // Get snippet name from the tool arguments
   const mcptoolargs = context.triggerMetadata.mcptoolargs as {
     snippetname?: string;
   };
   const snippetName = mcptoolargs?.snippetname;
 
-  console.info(`Snippet name: ${snippetName}`);
+  context.log(`Getting snippet: ${snippetName}`);
 
   if (!snippetName) {
     return "No snippet name provided";
   }
 
-  // Get the content from blob binding - properly retrieving from extraInputs
   const snippetContent = context.extraInputs.get(blobInputBinding);
 
   if (!snippetContent) {
     return `Snippet '${snippetName}' not found`;
   }
 
-  console.info(`Retrieved snippet: ${snippetName}`);
+  context.log(`Retrieved snippet: ${snippetName}`);
   return snippetContent as string;
 }
 
@@ -58,9 +54,6 @@ export async function saveSnippet(
   _toolArguments: unknown,
   context: InvocationContext
 ): Promise<string> {
-  console.info("Saving snippet");
-
-  // Get snippet name and content from the tool arguments
   const mcptoolargs = context.triggerMetadata.mcptoolargs as {
     snippetname?: string;
     snippet?: string;
@@ -68,6 +61,8 @@ export async function saveSnippet(
 
   const snippetName = mcptoolargs?.snippetname;
   const snippet = mcptoolargs?.snippet;
+
+  context.log(`Saving snippet: ${snippetName}`);
 
   if (!snippetName) {
     return "No snippet name provided";
@@ -77,10 +72,9 @@ export async function saveSnippet(
     return "No snippet content provided";
   }
 
-  // Save the snippet to blob storage using the output binding
   context.extraOutputs.set(blobOutputBinding, snippet);
 
-  console.info(`Saved snippet: ${snippetName}`);
+  context.log(`Saved snippet: ${snippetName}`);
   return snippet;
 }
 

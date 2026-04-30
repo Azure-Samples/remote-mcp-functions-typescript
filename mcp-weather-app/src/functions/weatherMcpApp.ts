@@ -32,20 +32,19 @@ export async function getWeatherWidget(
   context: InvocationContext
 ): Promise<string> {
   context.log("Getting weather widget");
-  
+
   try {
-    // __dirname is dist/src/functions, go up 3 levels to project root, then to src/app/dist
+    // __dirname is dist/src/functions — go up 3 levels to project root, then to src/app/dist
     const filePath = path.join(__dirname, "..", "..", "..", "src", "app", "dist", "index.html");
     return fs.readFileSync(filePath, "utf-8");
   } catch (error) {
     context.log(`Error reading weather widget file: ${error}`);
-    // Return a fallback HTML if file not found
     return `<!DOCTYPE html>
 <html>
 <head><title>Weather Widget</title></head>
 <body>
   <h1>Weather Widget</h1>
-  <p>Widget content not found. Please ensure the app/dist/index.html file exists.</p>
+  <p>Widget content not found. Run <code>npm run build:app</code> first.</p>
 </body>
 </html>`;
   }
@@ -58,7 +57,6 @@ export async function getWeather(
 ): Promise<object> {
   context.log("Getting weather");
 
-  // Get location from the tool arguments
   const mcptoolargs = context.triggerMetadata.mcptoolargs as {
     location?: string;
   };
@@ -66,7 +64,7 @@ export async function getWeather(
 
   try {
     const result = await weatherService.getCurrentWeatherAsync(location);
-    
+
     if ("TemperatureC" in result) {
       const weather = result as WeatherResult;
       context.log(`Weather fetched for ${weather.Location}: ${weather.TemperatureC}°C`);
@@ -97,8 +95,6 @@ app.mcpResource("getWeatherWidget", {
 });
 
 // Register the GetWeather tool
-// Note: metadata property is not yet supported in the TypeScript SDK for mcpTool
-// The TOOL_METADATA is defined for future use when the SDK is updated
 app.mcpTool("getWeather", {
   toolName: "GetWeather",
   description: "Returns current weather for a location via Open-Meteo.",
