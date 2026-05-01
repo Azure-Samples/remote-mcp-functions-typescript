@@ -40,6 +40,18 @@ npm start
 Then connect an MCP client to the function app's SSE endpoint and call
 `prompts/list` / `prompts/get` to invoke the prompts above.
 
+## Test prompts in VS Code
+
+Once the server is running and connected as an MCP server in VS Code, you can
+invoke prompts in Copilot Chat using the `/mcp.<server-name>.<prompt-name>`
+syntax. For example, if your MCP server is named `remote-mcp-function`:
+
+```
+/mcp.remote-mcp-function.code_review_checklist
+/mcp.remote-mcp-function.summarize_content
+/mcp.remote-mcp-function.generate_documentation
+```
+
 ## Deploy to Azure
 
 This sample shares the `infra/` templates in the parent folder with the
