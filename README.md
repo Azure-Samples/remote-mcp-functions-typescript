@@ -35,7 +35,7 @@ If you're looking for this sample in more languages check out the [.NET/C#](http
 
 Below is the architecture diagram for the Remote MCP Server using Azure Functions:
 
-![Architecture Diagram](architecture-diagram.png)
+![Architecture Diagram](/images/architecture-diagram.png)
 
 ## Repository layout
 
