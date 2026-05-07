@@ -10,7 +10,7 @@ app.mcpPrompt('GenerateDocumentation', {
     promptName: GenerateDocsPromptName,
     description: GenerateDocsPromptDescription,
     promptArguments: {
-        function_name: promptArg.describe('The function to document.').isRequired(),
+        function_name: promptArg.describe("The function to document.").isRequired(),
         style: promptArg.describe("Documentation style (e.g., 'concise', 'verbose')."),
     },
     handler: async (ctx: PromptInvocationContext, context: InvocationContext) => {
