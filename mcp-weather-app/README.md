@@ -50,7 +50,7 @@ This creates a bundled `src/app/dist/index.html` file that the function serves.
 
 ### 2. Build and run the Function App
 
-Start the Functions host:
+In the `src/mcp-weather-app` directory, start the Functions host:
 
 ```shell
 func start
