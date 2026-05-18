@@ -23,7 +23,7 @@ This project is a TypeScript Azure Function app that exposes multiple MCP (Model
 - [Node.js](https://nodejs.org/) 18+
 - [Azure Functions Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local?pivots=programming-language-javascript#install-the-azure-functions-core-tools) >= `4.0.7030`
 - [Azure Developer CLI (azd)](https://aka.ms/azd)
-- [Docker](https://www.docker.com/) — required to run Azurite (Azure Storage emulator)
+- [Docker](https://www.docker.com/). Required to run Azurite (Azure Storage emulator)
 
 ## Prepare your local environment
 
@@ -114,6 +114,8 @@ azd env new <environment-name>
 
 ### Step 3: Provision and deploy
 
+By default, OAuth-based authentication is enabled using the [built-in MCP auth feature](https://learn.microsoft.com/azure/app-service/configure-authentication-mcp?toc=/azure/azure-functions/toc.json&bc=/azure/azure-functions/breadcrumb/toc.json) with Microsoft Entra as the identity provider.
+
 Configure VS Code as an allowed client application for Microsoft Entra:
 
 ```shell
@@ -134,7 +136,9 @@ azd up
 
 ### Step 4: Connect to the remote MCP server
 
-Open **`.vscode/mcp.json`** and click **Start** above **`remote-mcp-function`**. You'll be prompted for `functionapp-name` — find it in your `azd` command output or the `.azure/<env>/.env` file.
+Open **`.vscode/mcp.json`** and click **Start** above **`remote-mcp-function`**. You'll be prompted for `functionapp-name`. Find it in your `azd` command output or the `.azure/<env>/.env` file.
+
+By default, OAuth-based authentication is enabled using the [built-in MCP auth feature](https://learn.microsoft.com/azure/app-service/configure-authentication-mcp?toc=/azure/azure-functions/toc.json&bc=/azure/azure-functions/breadcrumb/toc.json) with Microsoft Entra as the identity provider. VS Code will prompt you to sign in with your Microsoft account. Sign in with the same account you used to deploy the app.
 
 > **Tip:** A successful connection shows the number of tools the server exposes. Click **More... → Show Output** above the server name to see request/response details.
 
@@ -147,7 +151,7 @@ Open **`.vscode/mcp.json`** and click **Start** above **`remote-mcp-function`**.
 
 ### Blob bindings for snippet storage
 
-This sample uses Azure Functions [blob bindings](https://learn.microsoft.com/azure/azure-functions/functions-bindings-storage-blob?pivots=programming-language-typescript) — no Azure SDK code needed:
+This sample uses Azure Functions [blob bindings](https://learn.microsoft.com/azure/azure-functions/functions-bindings-storage-blob?pivots=programming-language-typescript). No Azure SDK code needed:
 
 ```typescript
 const blobInputBinding = input.storageBlob({
@@ -177,4 +181,3 @@ app.mcpTool("getSnippet", {
 
 + Learn more about the [Azure Functions MCP extension](https://learn.microsoft.com/azure/azure-functions/functions-bindings-mcp?pivots=programming-language-typescript)
 + Add [API Management](https://aka.ms/mcp-remote-apim-auth) to your MCP server
-+ Add [built-in authentication](https://learn.microsoft.com/azure/app-service/overview-authentication-authorization) with Microsoft Entra

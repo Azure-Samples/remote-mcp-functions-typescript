@@ -45,9 +45,9 @@ Install these before working with any sample:
 
 | Sample | Get started | What it demonstrates |
 |--------|-------------|---------------------|
-| [mcp-tools](mcp-tools/) | [README](mcp-tools/README.md) | MCP Tool triggers — hello world, snippet save/get with Azure Blob bindings, structured content (images, resource links) |
-| [mcp-prompts](mcp-prompts/) | [README](mcp-prompts/README.md) | MCP Prompt triggers — reusable, parameterized prompt templates (code review, summarize, documentation) |
-| [mcp-weather-app](mcp-weather-app/) | [README](mcp-weather-app/README.md) | MCP Apps — tool + UI resource serving an interactive weather widget in a sandboxed iframe |
+| [mcp-tools](mcp-tools/) | [README](mcp-tools/README.md) | MCP Tool triggers: hello world, snippet save/get with Azure Blob bindings, structured content (images, resource links) |
+| [mcp-prompts](mcp-prompts/) | [README](mcp-prompts/README.md) | MCP Prompt triggers: reusable, parameterized prompt templates (code review, summarize, documentation) |
+| [mcp-weather-app](mcp-weather-app/) | [README](mcp-weather-app/README.md) | MCP Apps: tool + UI resource serving an interactive weather widget in a sandboxed iframe |
 
 
 ## Next Steps
