@@ -15,9 +15,9 @@
     "@azure/functions": "^4.13.0"
   },
   "devDependencies": {
-    "@types/node": "^20.x",
+    "@types/node": "^22.x",
     "rimraf": "^5.0.0",
-    "typescript": "^4.0.0"
+    "typescript": "^5.0.0"
   },
   "main": "dist/src/index.js"
 }
