@@ -7,14 +7,20 @@
       "command": "host start",
       "problemMatcher": "$func-node-watch",
       "isBackground": true,
-      "dependsOn": "npm watch (functions)"
+      "dependsOn": "npm watch (functions)",
+      "options": {
+        "cwd": "${workspaceFolder}/mcp-weather-app"
+      }
     },
     {
       "type": "shell",
       "label": "npm build (functions)",
       "command": "npm run build",
       "dependsOn": "npm clean (functions)",
-      "problemMatcher": "$tsc"
+      "problemMatcher": "$tsc",
+      "options": {
+        "cwd": "${workspaceFolder}/mcp-weather-app"
+      }
     },
     {
       "type": "shell",
@@ -26,19 +32,28 @@
         "kind": "build",
         "isDefault": true
       },
-      "isBackground": true
+      "isBackground": true,
+      "options": {
+        "cwd": "${workspaceFolder}/mcp-weather-app"
+      }
     },
     {
       "type": "shell",
       "label": "npm install (functions)",
-      "command": "npm install"
+      "command": "npm install",
+      "options": {
+        "cwd": "${workspaceFolder}/mcp-weather-app"
+      }
     },
     {
       "type": "shell",
       "label": "npm prune (functions)",
       "command": "npm prune --production",
       "dependsOn": "npm build (functions)",
-      "problemMatcher": []
+      "problemMatcher": [],
+      "options": {
+        "cwd": "${workspaceFolder}/mcp-weather-app"
+      }
     },
     {
       "type": "shell",
@@ -47,7 +62,10 @@
       "dependsOn": [
         "func: extensions install",
         "npm install (functions)"
-      ]
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/mcp-weather-app"
+      }
     }
   ]
 }
