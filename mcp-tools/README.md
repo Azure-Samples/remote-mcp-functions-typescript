@@ -9,6 +9,7 @@ This project is a TypeScript Azure Function app that exposes multiple MCP (Model
 | Tool | File | Description |
 |------|------|-------------|
 | `hello` | `src/functions/helloMcpTool.ts` | Simple hello world tool |
+| `helloMcpWithAuth` | `src/functions/helloMcpWithAuth.ts` | Greets the signed-in user by name via Microsoft Graph (OBO flow) |
 | `savesnippet` | `src/functions/snippetsMcpTool.ts` | Saves a code snippet to blob storage |
 | `getsnippets` | `src/functions/snippetsMcpTool.ts` | Retrieves a snippet from blob storage |
 | `getImageWithText` | `src/functions/structured-content/imageContentSample.ts` | Returns multi-block content (text + image) |
@@ -170,12 +171,28 @@ app.mcpTool("getSnippet", {
 });
 ```
 
+### On-Behalf-Of (OBO) auth with `helloMcpWithAuth`
+
+The `helloMcpWithAuth` tool demonstrates calling Microsoft Graph as the signed-in user using the OBO flow. When deployed with EasyAuth, the user's token arrives via HTTP headers injected by App Service Authentication. The tool:
+
+1. Extracts the user's bearer token from `X-MS-TOKEN-AAD-ACCESS-TOKEN` (or `Authorization` header)
+2. Reads the tenant ID from the `X-MS-CLIENT-PRINCIPAL` header
+3. Uses the managed identity's federated credential to prove the app's identity
+4. Exchanges the user's token for a Microsoft Graph token via OBO
+5. Calls Graph `/me` and returns the user's display name
+
+In local development, it falls back to your developer identity (`az login`, VS Code, etc.) to call Graph directly.
+
+> **Note:** The OBO flow requires that the Entra app registration has Microsoft Graph `User.Read` delegated permission with admin consent granted. The bicep infrastructure in this repo configures this automatically.
+
 ## Troubleshooting
 
 | Problem | Solution |
 |---------|----------|
 | Connection refused locally | Ensure Azurite is running (`docker run -p 10000:10000 -p 10001:10001 -p 10002:10002 mcr.microsoft.com/azure-storage/azurite`) |
 | Snippet save/get returns errors | Verify Azurite is reachable and `local.settings.json` has `"AzureWebJobsStorage": "UseDevelopmentStorage=true"` |
+| `helloMcpWithAuth` fails locally | Ensure you're signed in with `az login` or the VS Code Azure account extension |
+| OBO errors in production | Verify that consent has been granted for Microsoft Graph `User.Read` and that the Entra app registration is configured correctly |
 | 403 error or "Cannot force new registration for a non-dynamic authentication provider" | Ensure `host.json` has `extensions.mcp.system.webhookAuthorizationLevel` set to `"Anonymous"`. Without this, EasyAuth validates the token but the Functions host still requires a system key — resulting in 403. Also verify that VS Code's client ID (`aebc6443-996d-45c2-90f0-388ff96faa56`) is in the `allowedApplications` list in EasyAuth config. |
 
 ## Next Steps
