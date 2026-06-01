@@ -115,7 +115,7 @@ azd env new <environment-name>
 
 ### Step 3: Provision and deploy
 
-By default, OAuth-based authentication is enabled using the [built-in MCP auth feature](https://learn.microsoft.com/azure/app-service/configure-authentication-mcp?toc=/azure/azure-functions/toc.json&bc=/azure/azure-functions/breadcrumb/toc.json) with Microsoft Entra as the identity provider.
+This project requires OAuth-based authentication through the [built-in MCP auth feature](https://learn.microsoft.com/azure/app-service/configure-authentication-mcp?toc=/azure/azure-functions/toc.json&bc=/azure/azure-functions/breadcrumb/toc.json) with Microsoft Entra as the identity provider, and it is enabled by default.
 
 Configure VS Code as an allowed client application for Microsoft Entra:
 
@@ -129,19 +129,31 @@ Optionally enable VNet isolation:
 azd env set VNET_ENABLED true
 ```
 
-Deploy the project:
+Deploy the project. When prompted, pick your subscription and an Azure region.
 
 ```shell
 azd up
 ```
 
-### Step 4: Connect to the remote MCP server
+### Step 4: Consent to the application
 
-Open **`.vscode/mcp.json`** and click **Start** above **`remote-mcp-function`**. You'll be prompted for `functionapp-name`. Find it in your `azd` command output or the `.azure/<env>/.env` file.
+The `helloMcpWithAuth` tool requires consent for delegated permission to access Microsoft Graph. For testing, you can grant consent just for yourself by logging into the application in a browser. See [Consent authoring](#consent-authoring) for how you would handle this for production scenarios.
 
-By default, OAuth-based authentication is enabled using the [built-in MCP auth feature](https://learn.microsoft.com/azure/app-service/configure-authentication-mcp?toc=/azure/azure-functions/toc.json&bc=/azure/azure-functions/breadcrumb/toc.json) with Microsoft Entra as the identity provider. VS Code will prompt you to sign in with your Microsoft account. Sign in with the same account you used to deploy the app.
+Navigate to the `/.auth/login/aad` endpoint of your deployed function app. For example, if your function app is at `https://my-mcp-function-app.azurewebsites.net`, navigate to:
+
+```
+https://my-mcp-function-app.azurewebsites.net/.auth/login/aad
+```
+
+Sign in with your Azure subscription email and accept the permissions prompt. This completes the consent flow for you.
+
+### Step 5: Connect to the remote MCP server
+
+Open **`.vscode/mcp.json`** and click **Start** above **`remote-mcp-function`**. You'll be prompted for `functionapp-name` — find it in your `azd` command output or the `.azure/<env>/.env` file. You'll also be prompted to authenticate with Microsoft — click **Allow** and sign in.
 
 > **Tip:** A successful connection shows the number of tools the server exposes. Click **More... → Show Output** above the server name to see request/response details.
+
+> If you run into issues, see the [Troubleshooting](#troubleshooting) section below.
 
 ### Redeploy and clean up
 
@@ -173,17 +185,69 @@ app.mcpTool("getSnippet", {
 
 ### On-Behalf-Of (OBO) auth with `helloMcpWithAuth`
 
-The `helloMcpWithAuth` tool demonstrates calling Microsoft Graph as the signed-in user using the OBO flow. When deployed with EasyAuth, the user's token arrives via HTTP headers injected by App Service Authentication. The tool:
+The `helloMcpWithAuth` tool (in [`src/functions/helloMcpWithAuth.ts`](src/functions/helloMcpWithAuth.ts)) demonstrates how to call a downstream API (Microsoft Graph) **as the signed-in user** using the On-Behalf-Of (OBO) flow.
 
-1. Extracts the user's bearer token from `X-MS-TOKEN-AAD-ACCESS-TOKEN` (or `Authorization` header)
-2. Reads the tenant ID from the `X-MS-CLIENT-PRINCIPAL` header
-3. Uses the managed identity's federated credential to prove the app's identity
-4. Exchanges the user's token for a Microsoft Graph token via OBO
-5. Calls Graph `/me` and returns the user's display name
+**Local development** falls back to your local developer identity (Azure CLI, azd, etc.):
 
-In local development, it falls back to your developer identity (`az login`, VS Code, etc.) to call Graph directly.
+```typescript
+if (isDevelopment) {
+    credential = new ChainedTokenCredential(
+        new AzureCliCredential(),
+        new AzureDeveloperCliCredential()
+    );
+} else {
+    credential = buildOnBehalfOfCredential(context);
+}
+```
 
-> **Note:** The OBO flow requires that the Entra app registration has Microsoft Graph `User.Read` delegated permission with admin consent granted. The bicep infrastructure in this repo configures this automatically.
+**In production**, the `buildOnBehalfOfCredential` function exchanges the user's auth token for a Microsoft Graph token using three pieces of information:
+
+1. **The user's bearer token** — extracted from the `X-MS-TOKEN-AAD-ACCESS-TOKEN` header (or `Authorization` fallback)
+2. **The user's tenant ID** — decoded from the `X-MS-CLIENT-PRINCIPAL` header
+3. **A client assertion** — obtained from a managed identity with a federated credential, proving the app's identity without a client secret
+
+```typescript
+const managedIdentity = new ManagedIdentityCredential(federatedMiClientId);
+
+const getAssertion = async (): Promise<string> => {
+    const result = await managedIdentity.getToken(
+        `${tokenExchangeAudience}/.default`
+    );
+    return result.token;
+};
+
+return new OnBehalfOfCredential({
+    tenantId,
+    clientId,
+    getAssertion,
+    userAssertionToken: userToken,
+});
+```
+
+The resulting credential is then used to call Microsoft Graph `/me` and greet the user by name:
+
+```typescript
+const tokenResponse = await credential.getToken(["https://graph.microsoft.com/.default"]);
+const response = await fetch("https://graph.microsoft.com/v1.0/me", {
+    headers: { Authorization: `Bearer ${tokenResponse.token}` },
+});
+const me = await response.json();
+return `Hello, ${me.displayName} (${me.mail})!`;
+```
+
+## Consent authoring
+
+In the steps described for this example, you consented to the application by signing into it in a browser. This allowed the application to request delegated permissions to the Microsoft Graph. There are two main ways that consent can be handled:
+
+- **User consent** — This is the approach used in the example above. Each user signs into the application and consents to the permissions requested. They can only do this for themselves, unless they are a tenant administrator with the ability to consent on behalf of others. In this sample, user consent is appropriate because it allows you to quickly test things without impacting other users. However, the way user consent is authored in this sample does not reflect how you would typically do it in a production scenario. This is described in more detail below.
+
+- **Admin consent** — A tenant administrator can consent to the application on behalf of all users when they sign in and review the permissions. Once this is done, individual users can sign in without needing to consent themselves. This approach is more scalable and ensures that all users can access the application without running into consent issues. For the purposes of a sample, admin consent is not appropriate, but it is a great choice for production scenarios.
+
+The user consent approach for this sample is a separate login because the sample uses Visual Studio Code as the client. Although Visual Studio Code is pre-authorized to our application, that only creates consent for the user to call the MCP server. It doesn't create consent for the MCP server to call the Microsoft Graph on behalf of the user. When we log into the application directly, we request Microsoft Graph permissions as part of a combined consent experience.
+
+The main difference is that because Visual Studio Code is using a single sign-on flow, it only requests a token for the MCP server. It does not present an opportunity for the user to interactively consent to any permissions needed for or by the MCP server. If you built a client that used an interactive login of some kind, you could have it all handled entirely by that client. It would not be necessary to have a separate browser login.
+
+See [Overview of permissions and consent in the Microsoft identity platform](https://learn.microsoft.com/en-us/entra/identity-platform/permissions-consent-overview) for additional information on how Entra ID handles consent.
 
 ## Troubleshooting
 
@@ -192,10 +256,13 @@ In local development, it falls back to your developer identity (`az login`, VS C
 | Connection refused locally | Ensure Azurite is running (`docker run -p 10000:10000 -p 10001:10001 -p 10002:10002 mcr.microsoft.com/azure-storage/azurite`) |
 | Snippet save/get returns errors | Verify Azurite is reachable and `local.settings.json` has `"AzureWebJobsStorage": "UseDevelopmentStorage=true"` |
 | `helloMcpWithAuth` fails locally | Ensure you're signed in with `az login` or the VS Code Azure account extension |
-| OBO errors in production | Verify that consent has been granted for Microsoft Graph `User.Read` and that the Entra app registration is configured correctly |
+| OBO errors in deployed server | Verify that consent has been granted (see Step 4) and that the Entra app registration is configured correctly |
+| `An error occurred invoking 'helloMcpWithAuth'` right after `azd up` | Restart the function app: `az functionapp restart -g <resource-group> -n <function-app-name>`. The OBO flow signs a client assertion with the user-assigned managed identity via a federated identity credential (FIC). Right after provisioning, the auth runtime can hold a stale signing credential while the FIC propagates in Entra. Check **Application Insights > Logs** for `AADSTS50013: Assertion failed signature validation` to confirm. |
+| Generic "An error occurred invoking" with no details | Check **Application Insights > Logs** and query `exceptions \| where timestamp > ago(1h) \| project timestamp, outerMessage, innermostMessage` to find the actual error. |
 | 403 error or "Cannot force new registration for a non-dynamic authentication provider" | Ensure `host.json` has `extensions.mcp.system.webhookAuthorizationLevel` set to `"Anonymous"`. Without this, EasyAuth validates the token but the Functions host still requires a system key — resulting in 403. Also verify that VS Code's client ID (`aebc6443-996d-45c2-90f0-388ff96faa56`) is in the `allowedApplications` list in EasyAuth config. |
 
 ## Next Steps
 
 + Learn more about the [Azure Functions MCP extension](https://learn.microsoft.com/azure/azure-functions/functions-bindings-mcp?pivots=programming-language-typescript)
-+ Add [API Management](https://aka.ms/mcp-remote-apim-auth) to your MCP server
++ Learn more about [built-in MCP auth](https://learn.microsoft.com/azure/azure-functions/functions-mcp-tutorial?tabs=mcp-extension&pivots=programming-language-python#remote-mcp-server-authorization)
++ Connect your MCP server to [Foundry agents](https://learn.microsoft.com/azure/azure-functions/functions-mcp-foundry-tools?tabs=oauth-id%2Cmcp-extension%2Cfoundry)

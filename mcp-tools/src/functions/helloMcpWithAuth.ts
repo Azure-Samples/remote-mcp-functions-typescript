@@ -86,29 +86,35 @@ export async function helloMcpWithAuth(
  *      with a federated credential)
  */
 function buildOnBehalfOfCredential(context: InvocationContext): TokenCredential {
-    // Extract headers from trigger metadata
-    const headers = (
-        context.triggerMetadata?.mcpToolContext as
-            | { transport?: { properties?: { headers?: Record<string, string> } } }
-            | undefined
-    )?.transport?.properties?.headers ?? {};
+    // Extract headers from either transport location the runtime may use, normalized to lowercase
+    const meta = context.triggerMetadata as any;
+    const rawHeaders: Record<string, string> =
+        meta?.transport?.properties?.headers ??
+        meta?.mcptoolcontext?.transport?.properties?.headers ??
+        meta?.mcpToolContext?.transport?.properties?.headers ??
+        {};
+    const lowerHeaders = Object.fromEntries(
+        Object.entries(rawHeaders).map(([k, v]) => [k.toLowerCase(), v])
+    ) as Record<string, string>;
 
     // 1. Get the user's access token
-    let userToken = headers["X-MS-TOKEN-AAD-ACCESS-TOKEN"] || "";
+    let userToken = lowerHeaders["x-ms-token-aad-access-token"] || "";
     if (!userToken) {
-        const authHeader = headers["Authorization"] || "";
-        if (authHeader.startsWith("Bearer ")) {
+        const authHeader = lowerHeaders["authorization"] || "";
+        if (authHeader.toLowerCase().startsWith("bearer ")) {
             userToken = authHeader.slice("Bearer ".length);
         }
     }
     if (!userToken) {
+        context.error("No user token found. Available header keys: " + Object.keys(rawHeaders).join(", "));
         throw new Error(
             "No user access token found. Ensure built-in MCP auth is enabled with the token store turned on."
         );
     }
+    context.log("User token acquired (length: " + userToken.length + ")");
 
     // 2. Get the tenant ID from X-MS-CLIENT-PRINCIPAL
-    const encodedPrincipal = headers["X-MS-CLIENT-PRINCIPAL"] || "";
+    const encodedPrincipal = lowerHeaders["x-ms-client-principal"] || "";
     if (!encodedPrincipal) {
         throw new Error("X-MS-CLIENT-PRINCIPAL header is missing.");
     }
@@ -140,6 +146,7 @@ function buildOnBehalfOfCredential(context: InvocationContext): TokenCredential 
             "Tenant ID claim not found in X-MS-CLIENT-PRINCIPAL."
         );
     }
+    context.log(`Tenant ID: ${tenantId}, Client ID: ${process.env.WEBSITE_AUTH_CLIENT_ID}`);
 
     // 3. Build a client assertion using managed identity's federated credential
     const federatedMiClientId = process.env.OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID;
