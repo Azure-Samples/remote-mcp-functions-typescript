@@ -156,6 +156,7 @@ app.mcpPrompt('myPrompt', {
 | Problem | Solution |
 |---------|----------|
 | Prompts not showing in VS Code | Ensure the server is started in **MCP: List Servers** and that you're using agent mode in Chat |
+| 403 error or "Cannot force new registration for a non-dynamic authentication provider" | Ensure `host.json` has `extensions.mcp.system.webhookAuthorizationLevel` set to `"Anonymous"`. Without this, EasyAuth validates the token but the Functions host still requires a system key — resulting in 403. Also verify that VS Code's client ID (`aebc6443-996d-45c2-90f0-388ff96faa56`) is in the `allowedApplications` list in EasyAuth config. |
 
 ## Next Steps
 
