@@ -12,7 +12,15 @@
   },
   "dependencies": {
     "@azure/functions": "^4.13.0",
+    "@azure/functions-opentelemetry-instrumentation": "^0.3.0",
     "@azure/identity": "^4.13.1",
+    "@azure/monitor-opentelemetry": "^1.18.1",
+    "@azure/monitor-opentelemetry-exporter": "^1.0.0-beta.42",
+    "@opentelemetry/api": "^1.9.1",
+    "@opentelemetry/instrumentation": "^0.219.0",
+    "@opentelemetry/instrumentation-undici": "^0.29.0",
+    "@opentelemetry/sdk-trace-node": "^2.7.1",
+    "@typespec/ts-http-runtime": "0.3.6",
     "qrcode": "^1.5.4",
     "zod": "^3.24.2"
   },
