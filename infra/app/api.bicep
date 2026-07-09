@@ -50,6 +50,12 @@ var baseAppSettings = {
   // Only include required credential settings unconditionally
   AzureWebJobsStorage__credential: 'managedidentity'
   AzureWebJobsStorage__clientId: identityClientId
+
+  // Enable OTEL-compatible distributed tracing.
+  OTEL_SERVICE_NAME: name
+  OTEL_PROPAGATORS: 'tracecontext,baggage'
+  OTEL_TRACES_SAMPLER: 'parentbased_traceidratio'
+  OTEL_TRACES_SAMPLER_ARG: '1.0'
   
   // Application Insights settings are always included
   APPLICATIONINSIGHTS_AUTHENTICATION_STRING: applicationInsightsIdentity

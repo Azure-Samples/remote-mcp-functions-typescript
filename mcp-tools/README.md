@@ -18,6 +18,7 @@ This project is a TypeScript Azure Function app that exposes multiple MCP (Model
 | `generateBadge` | `src/functions/structured-content/imageContentSample.ts` | Generates an SVG status badge |
 | `resourceLink` | `src/functions/structured-content/resourceLinkSample.ts` | Returns a resource link content block |
 | `getCodeSnippet` | `src/functions/structured-content/snippetDataSample.ts` | Retrieves a snippet with structured metadata |
+| `weatherServiceTool` | `src/functions/weatherServiceTool.ts` | Gets the current weather for a city and demonstrates [OpenTelemetry-compatible distributed tracing](#opentelemetry-compatible-distributed-tracing) across the tool, service, and outbound API calls |
 
 ## Prerequisites
 
@@ -248,6 +249,57 @@ The user consent approach for this sample is a separate login because the sample
 The main difference is that because Visual Studio Code is using a single sign-on flow, it only requests a token for the MCP server. It does not present an opportunity for the user to interactively consent to any permissions needed for or by the MCP server. If you built a client that used an interactive login of some kind, you could have it all handled entirely by that client. It would not be necessary to have a separate browser login.
 
 See [Overview of permissions and consent in the Microsoft identity platform](https://learn.microsoft.com/en-us/entra/identity-platform/permissions-consent-overview) for additional information on how Entra ID handles consent.
+
+## OpenTelemetry-compatible distributed tracing
+
+The `weatherServiceTool` (in [`src/functions/weatherServiceTool.ts`](src/functions/weatherServiceTool.ts)) demonstrates end-to-end [distributed tracing](https://learn.microsoft.com/azure/azure-functions/opentelemetry-howto?pivots=programming-language-typescript) with [OpenTelemetry](https://opentelemetry.io/). Each invocation produces a span for the MCP tool, a child span for the weather service, and child spans for the geocoding and forecast calls — all correlated under the Azure Functions host request.
+
+Tracing is configured in two places:
+
+1. **`host.json`** turns on OpenTelemetry output from the Functions host:
+
+    ```json
+    {
+      "version": "2.0",
+      "telemetryMode": "OpenTelemetry"
+    }
+    ```
+
+2. **`src/telemetry.ts`** initializes the worker's tracer provider and exports spans to Application Insights. It uses a `SimpleSpanProcessor`, authenticates the exporter with the app's managed identity, and registers the Azure Functions and `undici` (global `fetch`) instrumentations so outbound HTTP calls appear as child dependency spans:
+
+    ```typescript
+    const clientId = getManagedIdentityClientId();
+    const exporter = new AzureMonitorTraceExporter({
+        connectionString: aiConnectionString,
+        ...(clientId ? { credential: new ManagedIdentityCredential(clientId) } : {}),
+    });
+
+    const provider = new NodeTracerProvider({
+        spanProcessors: [new SimpleSpanProcessor(exporter)],
+    });
+    provider.register();
+
+    registerInstrumentations({
+        tracerProvider: provider,
+        instrumentations: [
+            new AzureFunctionsInstrumentation(),
+            new UndiciInstrumentation(),
+        ],
+    });
+    ```
+
+`initializeTelemetry()` is called once at module load in [`src/index.ts`](src/index.ts), before any functions are registered. The tool code then creates spans with the OpenTelemetry API (`trace.getTracer(...).startActiveSpan(...)`) and adds attributes such as the requested city and resolved coordinates.
+
+### Viewing the traces
+
+After invoking `weatherServiceTool` against your deployed server app:
+
+1. In the [Azure portal](https://portal.azure.com), open the **Application Insights** resource created with the app (its name is in your `azd` output or the `.azure/<env>/.env` file).
+2. In the left menu, select **Investigate → Search**.
+3. Set the time range to the **last 30 minutes** and refresh.
+4. Select a `weatherServiceTool` trace to open the **end-to-end transaction details**. You'll see a span hierarchy like the one below, with the tool, the weather service, and the outbound `open-meteo` HTTP dependencies nested under the host request:
+
+    ![Distributed trace for weatherServiceTool showing nested spans for the MCP tool, weather service, geocoding, and forecast calls](../images/distributed-trace-weather.png)
 
 ## Troubleshooting
 
