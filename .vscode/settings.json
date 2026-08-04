@@ -1,5 +1,5 @@
 {
-    "azureFunctions.deploySubpath": ".",
+    "azureFunctions.deploySubpath": "mcp-weather-app",
     "azureFunctions.postDeployTask": "npm install (functions)",
     "azureFunctions.projectLanguage": "TypeScript",
     "azureFunctions.projectRuntime": "~4",
@@ -9,5 +9,6 @@
     "files.exclude": {
         "obj": true,
         "bin": true
-    }
+    },
+    "azureFunctions.defaultFunctionAppPath": "mcp-weather-app"
 }
