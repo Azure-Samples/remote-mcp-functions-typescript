@@ -68,6 +68,12 @@ param vNetName string = ''
 @description('Id of the user identity to be used for testing and debugging. This is not required in production. Leave empty if not needed.')
 param principalId string = deployer().objectId
 
+@description('User principal name of the deploying user. Becomes a PostgreSQL Entra admin so you can query the database locally. Leave empty when deploying as a service principal.')
+param principalName string = deployer().userPrincipalName
+
+param postgresServerName string = ''
+param postgresDatabaseName string = 'workitems'
+
 var abbrs = loadJsonContent('./abbreviations.json')
 var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
 var tags = { 'azd-env-name': environmentName }
@@ -132,6 +138,12 @@ module api './app/api.bicep' = {
     identityClientId: apiUserAssignedIdentity.outputs.clientId
     preAuthorizedClientIds: preAuthorizedClientIdsArray
     appSettings: {
+      // PostgreSQL connection. The Function App authenticates with its user-assigned
+      // managed identity (an Entra admin on the server), so there is no password.
+      POSTGRES_HOST: postgres.outputs.fqdn
+      POSTGRES_DATABASE: postgres.outputs.databaseName
+      POSTGRES_USER: apiUserAssignedIdentity.outputs.name
+      AZURE_CLIENT_ID: apiUserAssignedIdentity.outputs.clientId
     }
     virtualNetworkSubnetId: vnetEnabled ? serviceVirtualNetwork.outputs.appSubnetID : ''
     // Authorization parameters
@@ -182,6 +194,34 @@ module storage 'br/public:avm/res/storage/storage-account:0.8.3' = {
     minimumTlsVersion: 'TLS1_2'  // Enforcing TLS 1.2 for better security
     location: location
     tags: tags
+  }
+}
+
+// Azure Database for PostgreSQL - Flexible Server holding the workitems and qa_log tables
+module postgres 'app/postgres.bicep' = {
+  name: 'postgres'
+  scope: rg
+  params: {
+    name: !empty(postgresServerName) ? postgresServerName : '${abbrs.dBforPostgreSQLServers}${resourceToken}'
+    location: location
+    tags: tags
+    databaseName: postgresDatabaseName
+    administrators: concat(
+      [
+        {
+          objectId: apiUserAssignedIdentity.outputs.principalId
+          principalName: apiUserAssignedIdentity.outputs.name
+          principalType: 'ServicePrincipal'
+        }
+      ],
+      !empty(principalId) && !empty(principalName) ? [
+        {
+          objectId: principalId
+          principalName: principalName
+          principalType: 'User'
+        }
+      ] : []
+    )
   }
 }
 
@@ -267,6 +307,12 @@ output AZURE_TENANT_ID string = tenant().tenantId
 output SERVICE_API_NAME string = api.outputs.SERVICE_API_NAME
 output SERVICE_API_DEFAULT_HOSTNAME string = api.outputs.SERVICE_MCP_DEFAULT_HOSTNAME
 output AZURE_FUNCTION_NAME string = api.outputs.SERVICE_API_NAME
+
+// PostgreSQL outputs
+output POSTGRES_SERVER_NAME string = postgres.outputs.name
+output POSTGRES_HOST string = postgres.outputs.fqdn
+output POSTGRES_DATABASE string = postgres.outputs.databaseName
+output POSTGRES_USER string = principalName
 
 // Entra App outputs
 output ENTRA_APPLICATION_ID string = entraApp.outputs.applicationId
