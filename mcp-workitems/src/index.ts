@@ -5,4 +5,5 @@ app.setup({
 });
 
 // Import functions to register them
-import './functions/weatherMcpApp';
+import './functions/workitemTools';
+import './functions/qaTools';

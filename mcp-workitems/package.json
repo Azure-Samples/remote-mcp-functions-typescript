@@ -1,7 +1,7 @@
 {
-  "name": "mcp-prompts",
+  "name": "mcp-workitems",
   "version": "1.0.0",
-  "description": "Azure Functions MCP Prompt triggers sample",
+  "description": "Remote MCP server on Azure Functions: versioned work-item drafts and a Q&A log stored in Azure Database for PostgreSQL",
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
@@ -11,10 +11,13 @@
     "test": "echo \"No tests yet...\""
   },
   "dependencies": {
-    "@azure/functions": "^4.14.0"
+    "@azure/functions": "^4.16.2",
+    "@azure/identity": "^4.13.2",
+    "pg": "^8.23.0"
   },
   "devDependencies": {
     "@types/node": "^22.x",
+    "@types/pg": "^8.23.1",
     "rimraf": "^5.0.0",
     "typescript": "^5.0.0"
   },
