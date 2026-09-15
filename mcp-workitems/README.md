@@ -177,12 +177,6 @@ The Function App requires OAuth through the [built-in MCP auth feature](https://
 azd env set PRE_AUTHORIZED_CLIENT_IDS aebc6443-996d-45c2-90f0-388ff96faa56
 ```
 
-Optionally enable VNet isolation for storage:
-
-```shell
-azd env set VNET_ENABLED true
-```
-
 Provision and deploy:
 
 ```shell

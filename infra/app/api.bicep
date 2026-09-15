@@ -2,7 +2,7 @@ param name string
 @description('Primary location for all resources & Flex Consumption Function App')
 param location string = resourceGroup().location
 param tags object = {}
-param applicationInsightsName string = ''
+param applicationInsightsName string
 param appServicePlanId string
 param appSettings object = {}
 param runtimeName string 
@@ -10,15 +10,10 @@ param runtimeVersion string
 param serviceName string = 'api'
 param storageAccountName string
 param deploymentStorageContainerName string
-param virtualNetworkSubnetId string = ''
-param instanceMemoryMB int = 2048
-param maximumInstanceCount int = 100
+param instanceMemoryMB int = 2048 // Smallest instance size Flex Consumption offers
+param maximumInstanceCount int = 40 // Lowest value Flex Consumption accepts
 param identityId string = ''
 param identityClientId string = ''
-param enableBlob bool = true
-param enableQueue bool = false
-param enableTable bool = false
-param enableFile bool = false
 
 @allowed(['SystemAssigned', 'UserAssigned'])
 param identityType string = 'UserAssigned'
@@ -50,6 +45,8 @@ var baseAppSettings = {
   // Only include required credential settings unconditionally
   AzureWebJobsStorage__credential: 'managedidentity'
   AzureWebJobsStorage__clientId: identityClientId
+  AzureWebJobsStorage__blobServiceUri: stg.properties.primaryEndpoints.blob // deployment package
+  AzureWebJobsStorage__queueServiceUri: stg.properties.primaryEndpoints.queue // MCP trigger
 
   // Enable OTEL-compatible distributed tracing.
   OTEL_SERVICE_NAME: name
@@ -62,12 +59,6 @@ var baseAppSettings = {
   APPLICATIONINSIGHTS_CONNECTION_STRING: applicationInsights.properties.ConnectionString
 }
 
-// Dynamically build storage endpoint settings based on feature flags
-var blobSettings = enableBlob ? { AzureWebJobsStorage__blobServiceUri: stg.properties.primaryEndpoints.blob } : {}
-var queueSettings = enableQueue ? { AzureWebJobsStorage__queueServiceUri: stg.properties.primaryEndpoints.queue } : {}
-var tableSettings = enableTable ? { AzureWebJobsStorage__tableServiceUri: stg.properties.primaryEndpoints.table } : {}
-var fileSettings = enableFile ? { AzureWebJobsStorage__fileServiceUri: stg.properties.primaryEndpoints.file } : {}
-
 // Create auth-specific app settings when auth parameters are provided
 var authAppSettings = (!empty(authIdentifierUri) && !empty(identityClientId)) ? {
   WEBSITE_AUTH_PRM_DEFAULT_WITH_SCOPES: '${authIdentifierUri}/user_impersonation'
@@ -76,21 +67,13 @@ var authAppSettings = (!empty(authIdentifierUri) && !empty(identityClientId)) ? 
 } : {}
 
 // Merge all app settings
-var allAppSettings = union(
-  appSettings,
-  blobSettings,
-  queueSettings,
-  tableSettings,
-  fileSettings,
-  baseAppSettings,
-  authAppSettings
-)
+var allAppSettings = union(appSettings, baseAppSettings, authAppSettings)
 
 resource stg 'Microsoft.Storage/storageAccounts@2022-09-01' existing = {
   name: storageAccountName
 }
 
-resource applicationInsights 'Microsoft.Insights/components@2020-02-02' existing = if (!empty(applicationInsightsName)) {
+resource applicationInsights 'Microsoft.Insights/components@2020-02-02' existing = {
   name: applicationInsightsName
 }
 
@@ -213,7 +196,6 @@ module api 'br/public:avm/res/web/site:0.21.0' = {
     siteConfig: {
       alwaysOn: false
     }
-    virtualNetworkSubnetResourceId: !empty(virtualNetworkSubnetId) ? virtualNetworkSubnetId : null
   }
 }
 

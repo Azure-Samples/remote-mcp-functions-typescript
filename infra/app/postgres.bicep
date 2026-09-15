@@ -23,6 +23,7 @@ module server 'br/public:avm/res/db-for-postgre-sql/flexible-server:0.9.1' = {
     tier: 'Burstable'
     version: '16'
     storageSizeGB: 32
+    backupRetentionDays: 7
     highAvailability: 'Disabled'
     geoRedundantBackup: 'Disabled'
     availabilityZone: '1'
